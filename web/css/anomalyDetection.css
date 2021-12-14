@@ -1,0 +1,98 @@
+
+main{
+    width:80%;
+    height:auto;
+    margin:100px auto;
+}
+
+main > .filter{
+    width:80%;
+    height: auto;
+    margin:30px auto;
+}
+
+main > .table {
+    width:80%;
+    height:auto;
+    margin:0 auto;
+
+}
+
+main > .table > li {
+    width:100%;
+    height:auto;
+}
+
+main > .table > li > ul:first-of-type{
+    display:flex;
+    width:100%;
+    background: rgb(255, 255, 255);
+}
+
+main > .table > li:first-of-type > ul:first-of-type{
+    background: #cae7ff;
+}
+
+
+main > .table > li > ul:first-of-type > li{
+    font-size:16px;
+    display:flex;
+    width:60%;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    border-bottom: 0.5px solid black;
+}
+
+main > .table > li > ul:first-of-type > li:first-of-type {
+    width:20%;
+    border-right: 1px solid black;
+}
+
+main > .table > li > ul:first-of-type > li:last-of-type {
+    width:20%;
+    border-left: 1px solid black;
+}
+
+main > .table > .tableHeader > ul:first-of-type {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    font-size:20px;
+    font-weight: bold;
+}
+
+main > .table > .tableHeader > ul:first-of-type > li {
+    height:50px;
+}
+
+main > .table > li:not(:first-of-type) > ul:first-of-type > li {
+    cursor:pointer;
+}
+
+main > .table > li:not(:first-of-type) {
+    height:35px;
+    overflow:hidden;
+    transition: height 0.5s;
+}
+
+main > .table > .moreDataEvent{
+    height:335px !important;
+}
+
+main > .table > li:not(:first-of-type) > .defaultData{
+    height:35px;
+}
+
+main > .table > li:not(:first-of-type) > .defaultData:hover{
+    background: rgb(230, 230, 230);
+}
+
+
+main > .table > li:not(:first-of-type) > .moreData{
+    background: white;
+    box-sizing: border-box;
+    border-bottom:1px solid black;
+    width:100%;
+    height:300px;
+}
+

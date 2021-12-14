@@ -1,0 +1,13 @@
+
+.header{
+    width:80vw;
+    height:auto;
+    margin: 0 auto;
+    padding:80px 0px 50px 0;
+}
+
+.header > .title{
+    font-size:30px;
+    text-shadow: 3px 2px 1px gray;
+    user-select: none;
+}
