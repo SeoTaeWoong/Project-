@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <link rel="stylesheet" href="../css/default.css">
-        <link rel="stylesheet" href="../css/showRobotControl.css">
+        <link rel="stylesheet" href="{{url_for('static', filename='css/default.css')}}">
+        <link rel="stylesheet" href="{{url_for('static', filename='css/liveStreaming.css')}}">
     </head>
     <body>
         <div class="modal">
@@ -28,18 +28,21 @@
                     </div>
                 </div>
             </div>
-            <div class="centerWrap">
+            <div class="mainWrap">
                 <div class="imgStreaming">
                     <div class="mainCam"></div>
                     <div class="sub1Cam"></div>
                     <div class="sub2Cam"></div>
                 </div>
-            </div>
-            <div class="rightWrap">
+                <div class="plot">
+                    <div class="PID">
+                        
+                    </div>
+                    <div class="PWM">
 
+                    </div>
+                </div>
             </div>
-            
-
         </div>
     </body>
 </html>

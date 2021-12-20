@@ -2,11 +2,11 @@
 <html>
     <head>
         <title>추노</title>
-        <link rel="stylesheet" href="../css/default.css">
-        <link rel="stylesheet" href="../css/d_footer.css">
-        <link rel="stylesheet" href="../css/d_header.css">
-        <link rel="stylesheet" href="../css/d_menubar.css">
-        <link rel="stylesheet" href="../css/index.css">
+        <link rel="stylesheet" href="{{url_for('static', filename='css/default.css')}}">
+        <link rel="stylesheet" href="{{url_for('static', filename='css/d_footer.css')}}">
+        <link rel="stylesheet" href="{{url_for('static', filename='css/d_header.css')}}">
+        <link rel="stylesheet" href="{{url_for('static', filename='css/d_menubar.css')}}">
+        <link rel="stylesheet" href="{{url_for('static', filename='css/index.css')}}">
     </head>
     <body>
         <div class="header">
@@ -19,9 +19,9 @@
         </div>
         <div class="menubar">
             <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="liveStreaming.html">Live Streaming</a></li>
-                <li><a href="anomalyDetection.html">Anomaly Detection</a></li>
+                <li><a href="{{url_for('index')}}">Home</a></li>
+                <li><a href="{{url_for('liveStreaming')}}">Live Streaming</a></li>
+                <li><a href="{{url_for('anomalyDetection')}}">Anomaly Detection</a></li>
             </ul>
         </div>
         <main>

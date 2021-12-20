@@ -60,35 +60,42 @@
     background: red;
 }
 
-.modal > .centerWrap{
-    width:60%;
+.modal > .mainWrap{
+    width:80%;
     height:100%;
     border:1px solid black;
 }
-.modal > .centerWrap >.imgStreaming{
+.modal > .mainWrap >.imgStreaming{
     display:flex;
     flex-wrap: wrap;
     width:100%;
-    height:100%;
+    height:60%;
 }
 
-.modal > .centerWrap >.imgStreaming > .mainCam{
-    width:100%;
-    height:70%;
+.modal > .mainWrap >.imgStreaming > .mainCam{
+    width:50%;
+    height:100%;
     background: slateblue;
 }
 
 
-.modal > .centerWrap >.imgStreaming > .sub1Cam{
+.modal > .mainWrap >.imgStreaming > .sub1Cam{
     width:50%;
-    height:30%;
+    height:50%;
     background: skyblue;
 }
 
-.modal > .centerWrap >.imgStreaming > .sub2Cam{
+.modal > .mainWrap >.imgStreaming > .sub2Cam{
     width:50%;
-    height:40%;
+    height:50%;
     background: blue;;
+}
+
+.modal > .mainWrap > .plot{
+    display: flex;
+    width:100%;
+    height: 50%;
+    border:1px solid black;
 }
 
 .modal > .rightWrap{
