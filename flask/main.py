@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response
+from flask import Flask, render_template, Response, request
 from threading import Thread
 import server
 
@@ -20,6 +20,15 @@ def liveStreaming():
 @app.route('/liveCam01')
 def liveCam01():
     return Response(server.tcpSocketAccept('',8485), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/getRobotData', methods=['POST'])
+def getRobotData():
+    if request.method == "POST":
+        jsonData = request.get_json()
+        #jsonParsing(jsonData)
+        
+    return ''
+
 
 if __name__ == '__main__':
     app.run(host="127.0.0.1", port ="5050", debug=True)

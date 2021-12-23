@@ -5,33 +5,66 @@
         <link rel="stylesheet" href="{{url_for('static', filename='css/liveStreaming.css')}}">
     </head>
     <body>
-        <div class="modal">
-            <div class="leftWrap">
-                <label class="connectionWrap">
-                    <div class="connectionStr">
-                        Connection
-                    </div>
-                    <div class="connectionLED">
-    
-                    </div>
-                    
-                </label>
+        <main>
+            <div class="leftSidebar">
                 <div class="menubar">
-                    <div class="settings">
-
+                    <div class="optionBtn">
+                        <img src="{{url_for('static', filename='img/setting.png')}}" alt="option">
                     </div>
-                    <div class="controllChange">
-
+                    <div class="changeBtn">
+                        <img src="{{url_for('static', filename='img/arrowswitch.png')}}" alt="change">
                     </div>
-                    <div class="exit">
-
+                    <div class="shutdownBtn">
+                        <img src="{{url_for('static', filename='img/shutdown.png')}}" alt="shutdown">
                     </div>
                 </div>
+            </div>
+            <div class="leftWrap">
+                <ul>
+                    <li class="statusWrap">
+                        - STATUS -
+                        <ul class="status">
+                            <li>
+                                Connection: ON
+                            </li>
+                            <li>
+                                Mode: AUTO
+                            </li>
+                            <li>
+                                MaxSPD:
+                                <span class="maxSPDValue"></span>
+                            </li>
+                            <li>
+                                MinSPD:
+                                <span class="minSPDValue"></span>
+                            </li>
+                            <li>
+                                SPD: 50
+                            </li>
+                            <li>
+                                DEG: 30
+                            </li>
+                            <li>
+                                Kp:
+                                <span class="kpValue"></span>
+                            </li>
+                            <li>
+                                Ki:
+                                <span class="kiValue"></span>
+                            </li>
+                            <li>
+                                Kd:
+                                <span class="kdValue"></span>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
             </div>
             <div class="mainWrap">
                 <div class="imgStreaming">
                     <div class="mainCam">
-                        <img src="{{url_for('liveCam01')}}">
+                        <!--<img src="{{url_for('liveCam01')}}">-->
+                        <img src="..">
                     </div>
                     <div class="subCam">
                         <div class="sub1"></div>
@@ -47,6 +80,71 @@
                     </div>
                 </div>
             </div>
+            <div class="rightSidebar"></div>
+        </div>
+        <div class="modal">
+            <div class="modalHeader">
+                <div class="modalTitle">OPTION</div>
+                <div class="resetBtn">
+                    <img src="{{url_for('static', filename='img/reset.png')}}">
+                </div>
+            </div>
+            <ul class="contentsWrap">
+                <li class="minSPDWrap">
+                    <div class="optionName">
+                        MinSPD:
+                        <span class="modalMinSPDValue"></span>
+                    </div>
+                    <div class="optionValue">
+                        <input class="modalMinSPDRange" type="range" min="0" max="60" step="1">
+                    </div>
+                </li>
+                <li class="maxSPDWrap">
+                    <div class="optionName">
+                        MaxSPD: 
+                        <span class="modalMaxSPDValue"></span>
+                    </div>
+                    <div class="optionValue">
+                        <input class="modalMaxSPDRange" type="range" min="100" max="160" step="1">
+                    </div>
+                </li>
+                <li class="kpWrap">
+                    <div class="optionName">
+                        Kp:
+                        <span class="modalKpValue"></span>
+                    </div>
+                    <div class="optionValue">
+                        <input class="modalKpRange" type="range" min="100" max="160" step="1">
+                    </div>
+                </li>
+                <li class="kiWrap">
+                    <div class="optionName">
+                        Ki:
+                        <span class="modalKiValue"></span>
+                    </div>
+                    <div class="optionValue">
+                        <input class="modalKiRange" type="range" min="100" max="160" step="1">
+                    </div>
+                </li>
+                <li class="kdWrap">
+                    <div class="optionName">
+                        Kd:
+                        <span class="modalKdValue"></span>
+                    </div>
+                    <div class="optionValue">
+                        <input class="modalKdRange" type="range" min="100" max="160" step="1">
+                    </div>
+                </li>
+            </ul>
+            <div class="modalFooter">
+                <div class="cancleBtn">
+                    Cancle
+                </div>
+                <div class="applyBtn">
+                    Apply
+                </div>
+            </div>
         </div>
     </body>
+    <script type="text/javascript" src="{{url_for('static', filename='js/liveStreaming.js')}}"></script>
 </html>
