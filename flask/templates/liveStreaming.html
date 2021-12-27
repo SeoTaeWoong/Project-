@@ -28,7 +28,8 @@
                                 Connection: ON
                             </li>
                             <li>
-                                Mode: AUTO
+                                Controller: 
+                                <span class="controllerValue"></span>
                             </li>
                             <li>
                                 MaxSPD:
@@ -90,22 +91,37 @@
                 </div>
             </div>
             <ul class="contentsWrap">
-                <li class="minSPDWrap">
-                    <div class="optionName">
-                        MinSPD:
-                        <span class="modalMinSPDValue"></span>
-                    </div>
-                    <div class="optionValue">
-                        <input class="modalMinSPDRange" type="range" min="0" max="60" step="1">
-                    </div>
-                </li>
                 <li class="maxSPDWrap">
                     <div class="optionName">
                         MaxSPD: 
                         <span class="modalMaxSPDValue"></span>
                     </div>
                     <div class="optionValue">
-                        <input class="modalMaxSPDRange" type="range" min="100" max="160" step="1">
+                        <input class="modalMaxSPDRange gauge" type="range" min="100" max="160" step="1">
+                    </div>
+                </li>
+                <li class="minSPDWrap">
+                    <div class="optionName">
+                        MinSPD:
+                        <span class="modalMinSPDValue"></span>
+                    </div>
+                    <div class="optionValue">
+                        <input class="modalMinSPDRange gauge" type="range" min="0" max="60" step="1">
+                    </div>
+                </li>
+                <li class="modeChangeWrap">
+                    <div class="optionName">
+                        Controller
+                    </div>
+                    <div class="optionValue">
+                        <label>
+                            <input class="modalControllerRange tooglebtn" type="range" min="1" max="3" step="1">
+                            <ul>
+                                <li>Auto</li>
+                                <li>Web</li>
+                                <li>JoyCon</li>
+                            </ul>
+                        </label>
                     </div>
                 </li>
                 <li class="kpWrap">
@@ -114,7 +130,7 @@
                         <span class="modalKpValue"></span>
                     </div>
                     <div class="optionValue">
-                        <input class="modalKpRange" type="range" min="100" max="160" step="1">
+                        <input class="modalKpRange gauge" type="range" min="100" max="160" step="1">
                     </div>
                 </li>
                 <li class="kiWrap">
@@ -123,7 +139,7 @@
                         <span class="modalKiValue"></span>
                     </div>
                     <div class="optionValue">
-                        <input class="modalKiRange" type="range" min="100" max="160" step="1">
+                        <input class="modalKiRange gauge" type="range" min="100" max="160" step="1">
                     </div>
                 </li>
                 <li class="kdWrap">
@@ -132,7 +148,7 @@
                         <span class="modalKdValue"></span>
                     </div>
                     <div class="optionValue">
-                        <input class="modalKdRange" type="range" min="100" max="160" step="1">
+                        <input class="modalKdRange gauge" type="range" min="100" max="160" step="1">
                     </div>
                 </li>
             </ul>

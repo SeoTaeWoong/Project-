@@ -1,6 +1,7 @@
 
 var maxSPDOutput = document.querySelector(".maxSPDValue");
 var minSPDOutput = document.querySelector(".minSPDValue");
+var controllerOutput = document.querySelector(".controllerValue")
 var kpOutput = document.querySelector(".kpValue");
 var kiOutput = document.querySelector(".kiValue");
 var kdOutput = document.querySelector(".kdValue");
@@ -14,6 +15,7 @@ var shutdownBtn = document.querySelector('.shutdownBtn');
 
 var modalMinSPD = document.querySelector('.modalMinSPDRange');
 var modalMaxSPD = document.querySelector('.modalMaxSPDRange');
+var modalController = document.querySelector('.modalControllerRange')
 var modalKp = document.querySelector('.modalKpRange');
 var modalKi = document.querySelector('.modalKiRange');
 var modalKd = document.querySelector('.modalKdRange');
@@ -26,6 +28,7 @@ var modalKdOutput = document.querySelector('.modalKdValue');
 
 var modalMinSPDValue = modalMinSPD.value;
 var modalMaxSPDValue = modalMaxSPD.value;
+var modalControllerValue = modalController.value;
 var modalKpValue = modalKp.value;
 var modalKiValue = modalKi.value;
 var modalKdValue = modalKd.value;
@@ -55,18 +58,30 @@ applyBtn.addEventListener("click", function(){
     var modal = document.querySelector(".modal")
     modalMinSPDValue = modalMinSPD.value;
     modalMaxSPDValue = modalMaxSPD.value;
+    modalControllerValue = modalController.value;
     modalKpValue = modalKp.value;
     modalKiValue = modalKi.value;
     modalKdValue = modalKd.value;
 
+    var controllerTemp = '';
+    if(modalControllerValue == 1){
+        controllerTemp = "Auto";
+    }else if(modalControllerValue == 2){
+        controllerTemp = "Web";
+    }else if(modalControllerValue == 3){
+        controllerTemp = "JoyCon";
+    }
+
     maxSPDOutput.innerHTML = modalMaxSPDValue;
     minSPDOutput.innerHTML = modalMinSPDValue;
+    controllerOutput.innerHTML = controllerTemp;
     kpOutput.innerHTML = modalKpValue;
     kiOutput.innerHTML = modalKiValue;
     kdOutput.innerHTML = modalKdValue;
 
     data = {"maxSPD": modalMaxSPDValue, 
              "minSPD": modalMinSPDValue,
+             "controll": controllerTemp,
              "kp": modalKpValue,
              "ki": modalKiValue,
              "kd": modalKdValue};
@@ -83,6 +98,7 @@ cancleBtn.addEventListener("click", function(){
     var modal = document.querySelector(".modal")
     modalMinSPD.value = modalMinSPDValue;
     modalMaxSPD.value = modalMaxSPDValue;
+    modalController.value = modalControllerValue;
     modalKp.value = modalKpValue;
     modalKi.value = modalKiValue;
     modalKd.value = modalKdValue;

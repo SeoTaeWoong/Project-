@@ -25,8 +25,7 @@ def liveCam01():
 def getRobotData():
     if request.method == "POST":
         jsonData = request.get_json()
-        #jsonParsing(jsonData)
-        
+        print(jsonData)
     return ''
 
 

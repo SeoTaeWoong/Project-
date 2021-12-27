@@ -235,7 +235,7 @@ main > .modal > .contentsWrap{
     display: grid;
     grid-template-areas: "maxSPD Kp"
                          "minSPD Ki"
-                         "sd Kd";
+                         "mode Kd";
 }
 
 main > .modal > .contentsWrap > .minSPDWrap{
@@ -244,6 +244,10 @@ main > .modal > .contentsWrap > .minSPDWrap{
 
 main > .modal > .contentsWrap > .maxSPDWrap{
     grid-area: maxSPD;
+}
+
+main > .modal > .contentsWrap > .modeChangeWrap{
+    grid-area: mode;
 }
 
 main > .modal > .contentsWrap > .kpWrap{
@@ -277,6 +281,20 @@ main > .modal > .contentsWrap > li > .optionValue{
     margin-top: 10px;
 }
 
+main > .modal > .contentsWrap > .modeChangeWrap > .optionValue > .modalModeChangeCheck{ 
+    display:none;
+}
+
+
+main > .modal > .contentsWrap > .modeChangeWrap > .optionValue > .modalModeChangebar{ 
+    display: inline-block;
+    width:150px;
+    height:50px;
+    cursor:pointer;
+    position:relative;
+    background-color: #ccc;
+}
+
 main > .modal > .modalFooter{
     width:90%;
     height: 11%;
@@ -299,7 +317,7 @@ main > .modal > .modalFooter > div{
     cursor: pointer;
 }
 
-input[type=range] {
+main > .modal > .contentsWrap > li > .optionValue > .gauge {
     -webkit-appearance: none; 
     overflow: hidden;
     width: 100%; 
@@ -308,13 +326,13 @@ input[type=range] {
     cursor: pointer;
    background: #e5e4e3;
     border-radius: 25px; /* iOS */
-  }
+}
 
-  input[type=range]:focus {
+main > .modal > .contentsWrap > li > .optionValue > .gauge:focus {
     outline: none; 
-  }
+}
 
-  input[type=range]::-webkit-slider-thumb {
+main > .modal > .contentsWrap > li > .optionValue > .gauge::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 15px;
     height: 50px;
@@ -322,4 +340,55 @@ input[type=range] {
     box-shadow: -100vw 0 0 100vw rgb(99, 177, 255);
     border: 0.1px solid dodgerblue;
     cursor: pointer;
-  }
+}
+
+main > .modal > .contentsWrap > li > .optionValue > label > .tooglebtn {
+    -webkit-appearance: none; 
+    overflow: hidden;
+    position:absolute;
+    width: 100%; 
+    height: 50px;
+    background: transparent; 
+    cursor: pointer;
+    background: #e5e4e3;    
+    z-index: 1;
+    opacity: 0.5;
+}
+
+main > .modal > .contentsWrap > li > .optionValue > label > .tooglebtn:focus {
+    outline: none; 
+}
+
+main > .modal > .contentsWrap > li > .optionValue > label > .tooglebtn::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 33.3%;
+    height: 50px;
+    background: rgb(0, 128, 255);;
+    cursor: pointer;
+}
+
+main > .modal > .contentsWrap > li > .optionValue > label{
+    display:inline-block;
+    position:relative;
+    width:88%;
+}
+
+main > .modal > .contentsWrap > li > .optionValue > label > ul{
+    position:absolute;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    top:0px;
+    left:0px;
+    width:100%;
+    height:50px;
+    z-index: 0;
+    background-color: #e5e4e3;
+}
+
+main > .modal > .contentsWrap > li > .optionValue > label > ul > li{
+    width:33%;
+    font-size:22px;
+    font-weight: bold;
+    text-align: center;
+}

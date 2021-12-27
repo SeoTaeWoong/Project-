@@ -2,6 +2,7 @@ import cv2
 import socket
 import numpy as np
 import time
+localhost = "127.0.0.1"
 serverIP = '192.168.137.1'
 serverPORT = 8485
 cam = cv2.VideoCapture(0)
@@ -12,7 +13,7 @@ encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
 def run():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.settimeout(5)
-        sock.connect((serverIP, serverPORT))
+        sock.connect((localhost, serverPORT))
         while True:
             ret, frame = cam.read()
             if ret:
