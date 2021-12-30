@@ -11,6 +11,7 @@ def strAsDictFormat(str):
         _strSpList = _str.split(":")
         
         for __str in _strSpList:
+            t
             if cnt==0:
                 key.append(__str)
                 cnt+=1
