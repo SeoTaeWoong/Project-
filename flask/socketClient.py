@@ -2,11 +2,10 @@ import socket
 import numpy as np
 import cv2
 import threading as Threading
-import millis
+#import millis
 import json
 import base64
 import time
-import raspAtmegaSerial
 
 
 class SocketClient(object):
@@ -36,6 +35,7 @@ class SocketClient(object):
             self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
             cls._init = True
     
+
     def sendMSG(self, ser_socket, message):
         jsonData = json.dumps(message)
         jsonLength = self.jsonTransformByteLength(jsonData)
@@ -95,7 +95,14 @@ class SocketClient(object):
                     return 
     
     def getRobotSettings(self):
-        robotData = rasp_atmega.responseGetData
+        robotData = {
+                    "Controller":"auto",
+                    "MaxSPD":"160",
+                    "MinSPD":"0",
+                    "Kp":"1",
+                    "Ki":"0",
+                    "Kd":"0"
+                    }
         return robotData
     
     def recvThread(self, ser_socket):
@@ -157,12 +164,7 @@ class SocketClient(object):
                     imgData = np.array(frame)
                     stringData = imgData.tostring()
                     base64Data = self.byteTransformBase64(stringData)
-                    realTimeData = rasp_atmega.getRobotData()
-                    if realTimeData["type"] == "responseData":
-                        del(realTimeData["type"])
-                        realTimeData["img"] = base64Data
-                    else:
-                        realTimeData = {"img":base64Data}
+                    realTimeData = {"pwm":"1","deg":"1","img":base64Data}
                     message = self.__messageForm
                     message["destination"] = self.serverIP
                     message["type"]="request/RealTimeStatus"
@@ -180,15 +182,12 @@ class SocketClient(object):
     def transferData(self, ser_socket):
         self.connectionCheck(ser_socket)
         print("cli conn ok")
-
-        while True:
-            robotData = rasp_atmega.getRobotData()
-            if robotData["type"] == "responseData":
-                del(robotData["type"])
-                break
-            
+        
+        # robot 기본 셋팅정보 가져오기
+        # 시리얼로 요청함수 작성 일단 임시코드 사용 추후 수정해야함
         rsCheck = True
         while rsCheck:
+            robotData = self.getRobotSettings()
             message = self.__messageForm
             message["destination"] = self.serverIP
             message["type"] = "request/RobotSettings"
@@ -217,19 +216,10 @@ class SocketClient(object):
             print("gogo")
             self.transferData(sock)
 
-
 while True:
     try:
-        rasp_atmega = raspAtmegaSerial.RaspAtmega()
-        rasp_atmega.serialON()
-        rasp_atmega_getDataT = Threading.Thread(target=rasp_atmega.getDataTransmit, args=(Threading.Lock(),))
-        rasp_atmega_setDataT = Threading.Thread(target=rasp_atmega.setDataTransmit, args=(Threading.Lock(),))
-        rasp_atmega_commandT = Threading.Thread(target=rasp_atmega.cmdDataTransmit, args=(Threading.Lock(),))
-        rasp_atmega_getDataT.start()
-        rasp_atmega_setDataT.start()
-        rasp_atmega_commandT.start()
-        raspCLI_aiSER = SocketClient()
-        raspCLI_aiSER.clientON()
+        a = SocketClient()
+        a.clientON()
     except Exception as ex:
         time.sleep(2)
         print(ex)

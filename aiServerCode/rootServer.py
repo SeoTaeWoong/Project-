@@ -133,7 +133,9 @@ class SocketServer(object):
                 frame = cv2.imdecode(frameData, cv2.IMREAD_COLOR)
                 cv2.imshow("frameName",frame)
                 cv2.waitKey(1)
-                
+                for key,value in getData["data"].items():
+                    if key != "img":
+                        print(key, value)
                 #여기서 웹으로 데이터 전송 코드 작성하기
                 #
                 #
