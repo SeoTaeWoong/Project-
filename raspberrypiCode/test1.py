@@ -12,7 +12,8 @@ while True:
     ret, frame = cam.read()
     if ret:
         cv2.imshow("test", frame)
-        cv2.waitKey(1)
+
+        if cv2.waitKey(1) and 0xFF ==
 
 cam.release()
 

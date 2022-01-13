@@ -102,64 +102,9 @@ class SocketServer(object):
     
     
     def transferData(self, cli_socket, addr):
-        self.connectionCheck(cli_socket, addr)
-        print(addr[0],"커넥션 완료")
+        print("읽기")
         while True:
             getData = self.recvMSG(cli_socket, addr)
-            if(getData and getData["type"] == "request/RobotSettings" and getData["origin"] == "rasp"):
-                message = self.__messageForm
-                message["destination"] = addr[0]
-                message["type"] = "response/RobotSettings"
-                message["data"] = "ok"
-                self.sendMSG(cli_socket, message)
-                print("robotSettings 응답 완료")
-                print("받은 데이터 ", getData)
-                #여기서 웹으로 데이터 전송 코드 작성하기
-                #
-                #
-                
-            elif(getData and getData["type"] == "request/RealTimeStatus" and getData["origin"] == "rasp"):
-                message = self.__messageForm
-                message["destination"] = addr[0]
-                message["type"] = "response/RealTimeStatus"
-                message["data"] = "ok"
-                self.sendMSG(cli_socket, message)
-                print("응답 성공: ")
-                frame = self.base64TransformImg(getData["data"]['img'])
-                
-                frameData = np.frombuffer(frame, dtype = 'uint8')
-                #data를 디코딩한다.
-                frame = cv2.imdecode(frameData, cv2.IMREAD_COLOR)
-                cv2.imshow("frameName",frame)
-                cv2.waitKey(1)
-                for key,value in getData["data"].items():
-                    if key != "img":
-                        print(key, value)
-                #여기서 웹으로 데이터 전송 코드 작성하기
-                #
-                #
-            
-                
-            elif(getData and getData["type"] == "response/BluetoothConnection" and getData["origin"] == "rasp"):
-                print(getData)
-                
-                #블루투스 연결 성공 웹으로 데이터 전송코드 작성하기
-                
-            elif(getData and getData["type"] == "request/RobotSettingModify" and getData["origin"] == "web"):
-                print(getData)
-                message = self.__messageForm
-                message["destination"] = addr[0]
-                message["type"] = "response/RobotSettingModify"
-                message["data"] = "ok"
-                self.sendMSG(cli_socket, message)
-                # 수정된 로봇데이터를 라즈베리파이에 전송
-                
-            elif(getData and getData["type"] == "request/RobotControll" and getData["origin"] == "web"):
-                print(getData)
-                cv2.VideoCapture()
-                #로봇 컨트롤 값을 라즈베리파이에 전송 (web모드)
-                #응답 필요없음
-               
                 
                 
     def serverON(self):
