@@ -1,3 +1,4 @@
+from multiprocessing.process import current_process
 import socket
 import numpy as np
 import cv2
@@ -8,7 +9,9 @@ import base64
 import time
 import raspAtmegaSerial
 from multiprocessing import Process, Queue, Pipe
+import controller as Joycon
 import warnings
+import humanCam as HumanCam
 warnings.filterwarnings('ignore')
 
 
@@ -27,14 +30,16 @@ class SocketClient(object):
             cls._instance = super().__new__(cls)
         return cls._instance
     
-    def __init__(self, robotQueue,setDataQueue,cmdDataQueue,parentPipe):
+    def __init__(self, robotQueue,setDataQueue,cmdDataQueue,serialParentPipe,hCamQueue,joyParentPipe):
         cls = type(self)
         if not hasattr(cls, "_init"):
             print("__init__\n")
             self.robotQueue = robotQueue
             self.setDataQueue = setDataQueue
             self.cmdDataQueue = cmdDataQueue
-            self.parentPipev = parentPipe
+            self.serialParentPipev = serialParentPipe
+            self.joyParentPipe = joyParentPipe
+            self.hCamQueue = hCamQueue
             self.serverIP = '192.168.137.1'
             self.serverPORT = 8485
             self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
@@ -103,14 +108,21 @@ class SocketClient(object):
     
     def realTimeStatusThread(self,id, ser_socket):
         comparativeData = self.comparative
+        prev_time = time.time()
+        fps = 10
+
         while True:
+            
             cam = cv2.VideoCapture(2)
             #cam.set(3,320)
             #cam.set(4,240)
             while cam.isOpened():
+                
                 try:
                     ret, frame = cam.read()
-                    if ret:
+                    current_time = time.time() - prev_time
+                    if ret and (current_time > 1./fps):
+                        prev_time = time.time()
                         if robotQueue.qsize() != 0:
                             robotData = robotQueue.get()
                             if comparativeData != robotData:
@@ -128,6 +140,8 @@ class SocketClient(object):
                             del(realTimeData["type"])
                         
                         realTimeData["img"] = base64Data
+                        if hCamQueue.qsize() != 0 :
+                            realTimeData["img2"] = hCamQueue.get()
                         
                         message = self.__messageForm
                         message["destination"] = self.serverIP
@@ -175,6 +189,8 @@ class SocketClient(object):
                     rsCheck = False
         print("2Round")
 
+        
+
         threadSend = Threading.Thread(target=self.realTimeStatusThread, args=(1, ser_socket))
         threadSend.start()
         print("3Round")
@@ -201,17 +217,30 @@ class SocketClient(object):
 
 while True:
     try:
+        joycontroller = Joycon.joyCon()
+        blueQueue = Queue()
+        joyParentPipe, joyChildPipe = Pipe()
+        joycon_MultiProcess = Process(target=joycontroller.joyControll, args=(blueQueue, joyChildPipe))
+
+
         rasp_atmega = raspAtmegaSerial.RaspAtmega()
         rasp_atmega.serialON()
         robotQueue = Queue()
         setDataQueue = Queue()
         cmdDataQueue = Queue()
+        hCamQueue = Queue()
         
-        parentPipe, childPipe = Pipe()
-        rasp_atmega_MultiProcess = Process(target=rasp_atmega.multipleStart, args=(robotQueue,setDataQueue,cmdDataQueue,childPipe))
-        rasp_atmega_MultiProcess.start()
+        serialParentPipe, serialChildPipe = Pipe()
+        rasp_atmega_MultiProcess = Process(target=rasp_atmega.multipleStart, args=(robotQueue,setDataQueue,cmdDataQueue,blueQueue,serialChildPipe))
+        
+        humanCam = HumanCam.camera()
+        hCam_MultiProcess = Process(target = humanCam.frameUpdate, args=(hCamQueue,))
 
-        raspCLI_aiSER = SocketClient(robotQueue,setDataQueue,cmdDataQueue,parentPipe)
+        hCam_MultiProcess.start()
+        rasp_atmega_MultiProcess.start()
+        joycon_MultiProcess.start()
+
+        raspCLI_aiSER = SocketClient(robotQueue,setDataQueue,cmdDataQueue,serialParentPipe,hCamQueue,joyParentPipe)
         raspCLI_aiSER.clientON()
     except Exception as ex:
         print("err2:",ex)

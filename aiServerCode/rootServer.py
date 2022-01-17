@@ -125,15 +125,20 @@ class SocketServer(object):
                 message["data"] = "ok"
                 self.sendMSG(cli_socket, message)
                 print("응답 성공: ")
-                frame = self.base64TransformImg(getData["data"]['img'])
+                frame1 = self.base64TransformImg(getData["data"]['img'])
+                frame2 = self.base64TransformImg(getData["data"]['img2'])
                 
-                frameData = np.frombuffer(frame, dtype = 'uint8')
+                frameData1 = np.frombuffer(frame1, dtype = 'uint8')
+                frameData2 = np.frombuffer(frame2, dtype = 'uint8')
                 #data를 디코딩한다.
-                frame = cv2.imdecode(frameData, cv2.IMREAD_COLOR)
-                cv2.imshow("frameName",frame)
+                frame1 = cv2.imdecode(frameData1, cv2.IMREAD_COLOR)
+                frame2 = cv2.imdecode(frameData2, cv2.IMREAD_COLOR)
+                frame1 = cv2.flip(frame1,0)
+                cv2.imshow("frameName",frame1)
+                cv2.imshow("frameName2",frame2)
                 cv2.waitKey(1)
                 for key,value in getData["data"].items():
-                    if key != "img":
+                    if key != "img" or key != "img2":
                         print(key, value)
                 #여기서 웹으로 데이터 전송 코드 작성하기
                 #

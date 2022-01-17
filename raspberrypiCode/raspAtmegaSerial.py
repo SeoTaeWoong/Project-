@@ -1,8 +1,9 @@
 import serial
 import millis
 import threading as Threading
+from multiprocessing import Process, Queue
 import time
-import controller as joycon
+
 
 class RaspAtmega(object):
               #controll 1 : AUTO, 2: JOYCON, 3:WEB
@@ -31,10 +32,11 @@ class RaspAtmega(object):
     def serialON(self):
         self.ser = serial.Serial(self.serialPort, self.baudRate, timeout = self.timeout)
     
-    def multipleStart(self, robotQueue,setDataqueue, cmdQueue, raspcliPipe):
+    def multipleStart(self, robotQueue,setDataqueue, cmdQueue, blueQueue, raspcliPipe):
         self.robotQueue = robotQueue
         self.raspcliPipe = raspcliPipe
         self.setDataQueue = setDataqueue
+        self.blueQueue = blueQueue
         self.cmdQueue = cmdQueue
         lock = Threading.Lock()
         getDataThread = Threading.Thread(target=self.getDataTransmit, args=(lock,))
@@ -82,28 +84,27 @@ class RaspAtmega(object):
                 lock.acquire()
                 self.serialWrite("setData")
                 lock.release()
-                time.sleep(0.2)
+                time.sleep(0.5)
                 self.types[1] = False
 
     def cmdDataTransmit(self, lock):
-        
         while True:
-            
-            if self.types[2]:
-                lock.acquire()
-                self.serialWrite("controll")
-                lock.release()
-                time.sleep(0.2) 
-                self.types[2] = False
-            elif self.__robotData.get("controll") !=None and (self.__robotData["controll"] == 2) and (not self.types[2]):
-                
-                self.__command = joycon.joyControll()
-                print(self.__command)
-                if self.__command:
+            try:
+                if self.types[2]:
                     lock.acquire()
                     self.serialWrite("controll")
                     lock.release()
-                    time.sleep(0.2)
+                    self.types[2] = False
+                elif self.__robotData.get("controll") !=None and (self.__robotData["controll"] == 2) and (not self.types[2]):
+                    
+                    if self.blueQueue.qsize() != 0:
+                        self.__command = self.blueQueue.get()
+                        print("motor: ",self.__command)
+                        lock.acquire()
+                        self.serialWrite("controll")
+                        lock.release()
+            except Exception as e:
+                print("controll Err MSG: ",e)
          
 
     def serialWrite(self, type):
