@@ -95,7 +95,7 @@ class RaspAtmega(object):
                     self.serialWrite("controll")
                     lock.release()
                     self.types[2] = False
-                elif self.__robotData.get("controll") !=None and (self.__robotData["controll"] == 2) and (not self.types[2]):
+                elif self.__robotData.get("controll") !=None and (self.__robotData["controll"] == 2) and (not self.types[2]) and False:
                     
                     if self.blueQueue.qsize() != 0:
                         self.__command = self.blueQueue.get()

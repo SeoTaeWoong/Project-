@@ -46,7 +46,7 @@ class camera(object):
     def frameUpdate(self, hCamQueue):
         print("update~~")
         prev_time = time.time()
-        fps = 20
+        fps = 10
 
         while True:
             index = self.checkCam()
@@ -60,7 +60,11 @@ class camera(object):
                             imgData = np.array(frame)
                             byteData = imgData.tobytes()
                             base64Data = self.byteTransformBase64(byteData)
-                            hCamQueue.put(base64Data)
+                            if hCamQueue.qsize() > 20:
+                                hCamQueue.get()
+                                hCamQueue.put(base64Data)
+                            else:
+                                hCamQueue.put(base64Data)
                             prev_time = time.time()
                     except Exception as e:
                         self.realCam.release()

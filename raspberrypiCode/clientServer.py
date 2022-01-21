@@ -12,6 +12,7 @@ from multiprocessing import Process, Queue, Pipe
 import controller as Joycon
 import warnings
 import humanCam as HumanCam
+import edge as Edge
 warnings.filterwarnings('ignore')
 
 
@@ -105,6 +106,71 @@ class SocketClient(object):
     def getRobotSettings(self):
         robotData = rasp_atmega.responseGetData
         return robotData
+
+    def getEdge(self, frame):
+        height, width = frame.shape[:2] # 이미지 높이, 너비
+        
+        gray_img = Edge.grayscale(frame) # 흑백이미지로 변환
+            
+        blur_img = Edge.gaussian_blur(gray_img, 3) # Blur 효과
+        
+        canny_img = Edge.canny(blur_img, 70, 210) # Canny edge 알고리즘
+        
+        vertices = np.array([[(150,height),(width/2-150, height/2+60), (width/2+150, height/2+60), (width-150,height)]], dtype=np.int32)
+        ROI_img = Edge.region_of_interest(canny_img, vertices) # ROI 설정
+        
+        line_arr = Edge.hough_lines(ROI_img, 1, 1 * np.pi/180, 30, 10, 20) # 허프 변환
+        line_arr = np.squeeze(line_arr)
+            
+        # 기울기 구하기
+        slope_degree = (np.arctan2(line_arr[:,1] - line_arr[:,3], line_arr[:,0] - line_arr[:,2]) * 180) / np.pi
+        
+        # 수평 기울기 제한
+        line_arr = line_arr[np.abs(slope_degree)<160]
+        slope_degree = slope_degree[np.abs(slope_degree)<160]
+        # 수직 기울기 제한
+        line_arr = line_arr[np.abs(slope_degree)>95]
+        slope_degree = slope_degree[np.abs(slope_degree)>95]
+        # 필터링된 직선 버리기
+        L_lines, R_lines = line_arr[(slope_degree>0),:], line_arr[(slope_degree<0),:]
+        temp = np.zeros((frame.shape[0], frame.shape[1], 3), dtype=np.uint8)
+        L_lines, R_lines = L_lines[:,None], R_lines[:,None]
+        # 왼쪽, 오른쪽 각각 대표선 구하기
+        left_fit_line = Edge.get_fitline(frame,L_lines)
+        right_fit_line = Edge.get_fitline(frame,R_lines)
+        # 대표선 그리기vvv         
+        Edge.draw_fit_line(temp, left_fit_line)
+        Edge.draw_fit_line(temp, right_fit_line)
+        # 방향을 찾기위한 소실점 구하기
+        left_fit_line, left_x = Edge.get_point(frame,L_lines)
+        right_fit_line, right_x = Edge.get_point(frame,R_lines)
+        
+        
+        _point = (left_x + right_x) /2
+        _center = frame.shape[1]/2
+        
+        direction = "None"
+        if _center-3 >= _point and _center+3 <= _point:
+            direction = "Go"
+        elif _center > _point:
+            direction = "Left"
+        elif _center < _point:
+            direction = "Right"
+        
+        red_color = (0, 0, 255)
+        green_color = (0, 255, 0)
+        
+        temp = cv2.line(temp, (int(_point-5), 290), (int(_point-5), 290), red_color, 10)
+        temp = cv2.line(temp, (int(_center-5), 290), (int(_center-5), 290), green_color, 10)
+        
+        cv2.putText(temp, str(direction), (30,50), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 2)
+        
+        #print(left_fit_line)
+        #print(right_fit_line)
+        #print(image_w)
+        result = Edge.weighted_img(temp, frame) # 원본 이미지에 검출된 선 overlap
+
+        return result
     
     def realTimeStatusThread(self,id, ser_socket):
         comparativeData = self.comparative
@@ -130,6 +196,12 @@ class SocketClient(object):
                         elif robotQueue.qsize() == 0:
                             robotData = comparativeData
                         
+                        frame = cv2.flip(frame, 0)
+                        frame = cv2.flip(frame, 1)
+                        print("com1")
+                        #frame = self.getEdge(frame)
+                        print("com2")
+
                         result, frame = cv2.imencode('.jpg', frame, self.encode_param)
                         imgData = np.array(frame)
                         byteData = imgData.tobytes()
@@ -238,7 +310,7 @@ while True:
 
         hCam_MultiProcess.start()
         rasp_atmega_MultiProcess.start()
-        joycon_MultiProcess.start()
+        #joycon_MultiProcess.start()
 
         raspCLI_aiSER = SocketClient(robotQueue,setDataQueue,cmdDataQueue,serialParentPipe,hCamQueue,joyParentPipe)
         raspCLI_aiSER.clientON()

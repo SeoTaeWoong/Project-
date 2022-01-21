@@ -2,19 +2,28 @@ import socket
 import numpy as np
 import cv2
 import threading as Threading
+from multiprocessing import Process, Queue
 import millis
 import json
 import base64
+import cvlib as cv
+import numpy as np
+import edge as Edge
+from tensorflow.keras.models import load_model
+
 
 
 class SocketServer(object):
     __socket = ""
     __socketList = []
+    __socketNames = []
     __robotData = {}
     __messageForm = {"origin":"aiServer",
                    "destination":"",
                    "type":"request/purpose",
                    "data":""}
+    raspSocket = None
+    webSocket = None
 
     def __new__(cls, *args, **kwargs):
         if not hasattr(cls, "_instance"):
@@ -29,7 +38,73 @@ class SocketServer(object):
             self.__socket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             self.__socket.bind(("",8485))
             self.__socket.listen(5)
+            self.model = load_model("model_rgb.h5")
             cls._init = True
+    
+    def getEdge(self, frame):
+        height, width = frame.shape[:2] # 이미지 높이, 너비
+        
+        gray_img = Edge.grayscale(frame) # 흑백이미지로 변환
+            
+        blur_img = Edge.gaussian_blur(gray_img, 3) # Blur 효과
+        
+        canny_img = Edge.canny(blur_img, 70, 210) # Canny edge 알고리즘
+        
+        vertices = np.array([[(10,height),(width/2-200, height/2+60), (width/2+200, height/2+60), (width-10,height)]], dtype=np.int32)
+        ROI_img = Edge.region_of_interest(canny_img, vertices) # ROI 설정
+        
+        line_arr = Edge.hough_lines(ROI_img, 1, 1 * np.pi/180, 30, 10, 20) # 허프 변환
+        line_arr = np.squeeze(line_arr)
+            
+        # 기울기 구하기
+        slope_degree = (np.arctan2(line_arr[:,1] - line_arr[:,3], line_arr[:,0] - line_arr[:,2]) * 180) / np.pi
+        
+        # 수평 기울기 제한
+        line_arr = line_arr[np.abs(slope_degree)<160]
+        slope_degree = slope_degree[np.abs(slope_degree)<160]
+        # 수직 기울기 제한
+        line_arr = line_arr[np.abs(slope_degree)>95]
+        slope_degree = slope_degree[np.abs(slope_degree)>95]
+        # 필터링된 직선 버리기
+        L_lines, R_lines = line_arr[(slope_degree>0),:], line_arr[(slope_degree<0),:]
+        temp = np.zeros((frame.shape[0], frame.shape[1], 3), dtype=np.uint8)
+        L_lines, R_lines = L_lines[:,None], R_lines[:,None]
+        # 왼쪽, 오른쪽 각각 대표선 구하기
+        left_fit_line = Edge.get_fitline(frame,L_lines)
+        right_fit_line = Edge.get_fitline(frame,R_lines)
+        # 대표선 그리기vvv         
+        Edge.draw_fit_line(temp, left_fit_line)
+        Edge.draw_fit_line(temp, right_fit_line)
+        # 방향을 찾기위한 소실점 구하기
+        left_fit_line, left_x = Edge.get_point(frame,L_lines)
+        right_fit_line, right_x = Edge.get_point(frame,R_lines)
+        
+        
+        _point = (left_x + right_x) /2
+        _center = frame.shape[1]/2
+        
+        direction = "None"
+        if _center-3 >= _point and _center+3 <= _point:
+            direction = "Go"
+        elif _center > _point:
+            direction = "Left"
+        elif _center < _point:
+            direction = "Right"
+        
+        red_color = (0, 0, 255)
+        green_color = (0, 255, 0)
+        
+        temp = cv2.line(temp, (int(_point-5), 290), (int(_point-5), 290), red_color, 10)
+        temp = cv2.line(temp, (int(_center-5), 290), (int(_center-5), 290), green_color, 10)
+        
+        cv2.putText(temp, str(direction), (30,50), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 2)
+        
+        #print(left_fit_line)
+        #print(right_fit_line)
+        #print(image_w)
+        result = Edge.weighted_img(temp, frame) # 원본 이미지에 검출된 선 overlap
+
+        return result
     
     def sendMSG(self, cli_socket, message):
         jsonData = json.dumps(message)
@@ -96,14 +171,16 @@ class SocketServer(object):
                 getData = self.recvMSG(cli_socket, addr)
                 if getData["type"] == "response/ThreeWayHandShake#4":
                     if getData["data"] == "response 'ACK' to request 'SYN' MSG":
-                        print(getData)
-                        return 
+                        if getData["origin"] == "rasp":
+                            self.raspSocket = cli_socket
+                        elif getData["origin"] == "web":
+                            self.webSocket = cli_socket
     
     
     
     def transferData(self, cli_socket, addr):
-        self.connectionCheck(cli_socket, addr)
-        print(addr[0],"커넥션 완료")
+        self.socketNames = self.connectionCheck(cli_socket, addr)
+        
         while True:
             getData = self.recvMSG(cli_socket, addr)
             if(getData and getData["type"] == "request/RobotSettings" and getData["origin"] == "rasp"):
@@ -125,21 +202,51 @@ class SocketServer(object):
                 message["data"] = "ok"
                 self.sendMSG(cli_socket, message)
                 print("응답 성공: ")
-                frame1 = self.base64TransformImg(getData["data"]['img'])
-                frame2 = self.base64TransformImg(getData["data"]['img2'])
-                
-                frameData1 = np.frombuffer(frame1, dtype = 'uint8')
-                frameData2 = np.frombuffer(frame2, dtype = 'uint8')
-                #data를 디코딩한다.
-                frame1 = cv2.imdecode(frameData1, cv2.IMREAD_COLOR)
-                frame2 = cv2.imdecode(frameData2, cv2.IMREAD_COLOR)
-                frame1 = cv2.flip(frame1,0)
-                cv2.imshow("frameName",frame1)
-                cv2.imshow("frameName2",frame2)
-                cv2.waitKey(1)
-                for key,value in getData["data"].items():
-                    if key != "img" or key != "img2":
-                        print(key, value)
+                try:
+                    roadCam = self.base64TransformImg(getData["data"]['img'])
+                    humanCam = self.base64TransformImg(getData["data"]['img2'])
+                    
+                    roadCamData = np.frombuffer(roadCam, dtype = 'uint8')
+                    humanCamData = np.frombuffer(humanCam, dtype = 'uint8')
+                    #data를 디코딩한다.
+                    roadCam = cv2.imdecode(roadCamData, cv2.IMREAD_COLOR)
+                    humanCam = cv2.imdecode(humanCamData, cv2.IMREAD_COLOR)
+                    try:
+                        roadCam = self.getEdge(roadCam)
+                        humanCam = self.faceEdge(humanCam)
+                    except Exception as e:
+                        print(e)
+                        roadCam = cv2.imdecode(roadCamData, cv2.IMREAD_COLOR)
+                        humanCam = cv2.imdecode(humanCamData, cv2.IMREAD_COLOR)
+                    
+                    
+                    cv2.imshow("roadCam",roadCam)
+                    cv2.imshow("humanCam",humanCam)
+                    cv2.waitKey(1)
+                    for key,value in getData["data"].items():
+                        if key != "img" and key != "img2":
+                            print(key, value)
+                    if self.webSocket != None:
+                        result, roadCam = cv2.imencode('.jpg', roadCam, self.encode_param)
+                        raodCamData = np.array(roadCam)
+                        roadCamByteData = raodCamData.tobytes()
+                        roadCamBase64Data = self.byteTransformBase64(roadCamByteData)
+                        
+                        result, humanCam = cv2.imencode('.jpg', humanCam, self.encode_param)
+                        humanCamData = np.array(humanCam)
+                        humanCamByteData = humanCamData.tobytes()
+                        humanCamBase64Data = self.byteTransformBase64(humanCamByteData)
+                        
+                        data = {"roadCam": roadCamBase64Data ,"humanCam": humanCamBase64Data}
+                        message = self.__messageForm
+                        message["destination"] = "web"
+                        message["type"] = "request/RealTimeStatus"
+                        message["data"] = data
+                        self.sendMSG(self.webSocket,message)
+                        
+                except Exception as e:
+                    print(e)
+                    pass
                 #여기서 웹으로 데이터 전송 코드 작성하기
                 #
                 #
@@ -165,7 +272,36 @@ class SocketServer(object):
                 #로봇 컨트롤 값을 라즈베리파이에 전송 (web모드)
                 #응답 필요없음
                
-                
+    def faceEdge(self, imgFrame):
+        
+        faces, confidences = cv.detect_face(imgFrame)
+        for (x, y, x2, y2), conf in zip(faces, confidences):
+            
+            img_size = (128,128)
+            #img = gray[y-20:y2+20,x-20:x2+20].copy()
+            #grayImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            #rgbImg = cv2.cvtColor(grayImg, cv2.COLOR_GRAY2RGB)
+            #frame_resized = cv2.resize(rgbImg, img_size, interpolation=cv2.INTER_AREA) 
+            img = imgFrame[y-20:y2+20,x-20:x2+20].copy()
+            frame_resized = cv2.resize(img, img_size, interpolation=cv2.INTER_AREA) 
+            frame_normalized = (frame_resized.astype(np.float32) / 127.0) - 1
+
+            frame_reshaped = frame_normalized.reshape((1, 128, 128,3))
+            preprocessed = frame_reshaped
+            prediction = self.model.predict(preprocessed)
+            pred = np.argmax(np.squeeze(prediction))
+            name = "unknown"
+            if(prediction[0][pred] > 0.8):
+                if(pred == 0):
+                    name = "JangYungDae"
+                elif(pred == 1):
+                    name = "KimSungTan"
+                elif(pred == 2):
+                    name = "SeoTaeWoong"
+            
+            cv2.rectangle(imgFrame, (x-20, y-20), (x2+20, y2+20), (0, 255, 0), 2)
+            cv2.putText(imgFrame, str(name), (x+30,y-40), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 2)
+        return imgFrame
                 
     def serverON(self):
         while True:
@@ -185,7 +321,9 @@ class SocketServer(object):
             
 
 
-
-a = SocketServer()
-a.serverON()
+if __name__ == "__main__":
+    
+    a = SocketServer()
+    a.serverON()
+    
 
