@@ -3,7 +3,7 @@
 #include <avr/interrupt.h>
 
 #include "MILLIS.h"
-float dt;
+double dt;
 
 ISR(TIMER1_COMPA_vect){
 	timer1_millis++;
@@ -29,10 +29,10 @@ unsigned long Millis(void){
 	return millis_return;
 }
 
-void SetDT(float _dt){
+void SetDT(double _dt){
 	dt = _dt;
 }
 
-float GetDT(){
+double GetDT(){
 	return dt;	
 }

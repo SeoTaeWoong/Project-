@@ -72,3 +72,38 @@ void AngleDataTx(int targetAngle, int currentAngle, int outPID){
 	}
 	_delay_ms(1);
 }
+
+void DefaultAngleTx(int gx, int gy, int gz, int ax, int ay, int az){
+	char gxBuffer[20];
+	char gyBuffer[20];
+	char gzBuffer[20];
+	char axBuffer[20];
+	char ayBuffer[20];
+	char azBuffer[20];
+	char buffer[50] = "";
+	
+	sprintf(gxBuffer, "%d", gx);
+	sprintf(gyBuffer, "%d", gy);
+	sprintf(gzBuffer, "%d", gz);
+	sprintf(axBuffer, "%d", ax);
+	sprintf(ayBuffer, "%d", ay);
+	sprintf(azBuffer, "%d", az);
+	
+	strcat(buffer, gxBuffer);
+	strcat(buffer, ",");
+	strcat(buffer, gyBuffer);
+	strcat(buffer, ",");
+	strcat(buffer, gzBuffer);
+	strcat(buffer, ",");
+	strcat(buffer, axBuffer);
+	strcat(buffer, ",");
+	strcat(buffer, ayBuffer);
+	strcat(buffer, ",");
+	strcat(buffer, azBuffer);
+	
+	for(int i=0; buffer[i] != '\0'; i++){
+		UartTransmit(buffer[i]);
+	}
+	_delay_ms(1);
+	
+}

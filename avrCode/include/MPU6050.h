@@ -3,9 +3,17 @@
 
 #include <avr/io.h>
 
-int GetMpu6050FilterAngleX();
-int GetMpu6050FilterAngleY();
-int GetMpu6050FilterAngleZ();
+double GetMpu6050FilterAngleX();
+double GetMpu6050FilterAngleY();
+double GetMpu6050FilterAngleZ();
+
+int GetMpu6050DefaultAccX();
+int GetMpu6050DefaultAccY();
+int GetMpu6050DefaultAccZ();
+
+int GetMpu6050DefaultGyroX();
+int GetMpu6050DefaultGyroY();
+int GetMpu6050DefaultGyroZ();
 
 
 void Mpu6050Init();

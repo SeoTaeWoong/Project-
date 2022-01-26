@@ -12,7 +12,6 @@ class RaspAtmega(object):
     __command = ""
     
 
-    types=[True,False,False]
 
     def __new__(cls, *args, **kwargs):
         if not hasattr(cls, "_instance"):
@@ -71,31 +70,35 @@ class RaspAtmega(object):
 
     def getDataTransmit(self, lock):
         while True:
-            if self.types[0]:
-                lock.acquire()
-                self.serialWrite("getData")
-                lock.release()
-                time.sleep(0.5)
+            lock.acquire()
+            self.serialWrite("getData")
+            lock.release()
+            time.sleep(0.5)
             
 
     def setDataTransmit(self, lock):
         while True:
-            if self.types[1]:
+            if False:
                 lock.acquire()
                 self.serialWrite("setData")
                 lock.release()
                 time.sleep(0.5)
-                self.types[1] = False
+                
 
     def cmdDataTransmit(self, lock):
         while True:
             try:
-                if self.types[2]:
+                if self.__robotData.get("controll") !=None and (self.__robotData["controll"] == 1) and self.cmdQueue.qsize() != 0:
+                    
+                    command = self.cmdQueue.get()
+                    if self.__command != command:
+                        self.__command = command
+                        continue
                     lock.acquire()
                     self.serialWrite("controll")
                     lock.release()
-                    self.types[2] = False
-                elif self.__robotData.get("controll") !=None and (self.__robotData["controll"] == 2) and (not self.types[2]) and False:
+                    
+                elif self.__robotData.get("controll") !=None and (self.__robotData["controll"] == 2):
                     
                     if self.blueQueue.qsize() != 0:
                         self.__command = self.blueQueue.get()
@@ -151,7 +154,7 @@ class RaspAtmega(object):
                         break
                 if (endTime-_timeOut) > 1000:
                     self.__responseErrData[0] = {"type":"errMSG","data":"getData TimeOUT","time":str((endTime-_timeOut)/1000)+"s"}
-                    print(data,"---err")
+                    print(self.__responseErrData[0],"/ ---getData err")
                     break
             
         elif type == "setData":
@@ -171,7 +174,7 @@ class RaspAtmega(object):
                         break
                 if (endTime-_timeOut) > 1000:
                     self.__responseErrData[1] = {"type":"errMSG","data":"setData TimeOUT","time":str((endTime-_timeOut)/1000)+"s"}
-                    print(data,"---err")
+                    print(data,"---setData err")
                     break
 
         elif type == "controll":
@@ -192,7 +195,7 @@ class RaspAtmega(object):
                         break
                 if (endTime-_timeOut) > 1000:
                     self.__responseErrData[2] = {"type":"errMSG","data":"motorControll TimeOUT","time":str((endTime-_timeOut)/1000)+"s"}
-                    print(data,"---err")
+                    print(data,"---controll err")
                     break
 
             pass

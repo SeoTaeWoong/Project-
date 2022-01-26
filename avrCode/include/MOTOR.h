@@ -8,7 +8,7 @@
 #define _MOTOR_H_
 
 void MotorInit();
-void MotorLeftPWM(int pwm, int motorDirection1, int motorDirection2);
-void MotorRightPWM(int pwm, int motorDirection1, int motorDirection2);
+void MotorMove(int speed, int minSPD);
+int GetCurrentSpeed();
 
 #endif

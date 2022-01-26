@@ -39,21 +39,26 @@ class SocketClient(object):
         ser_socket.sendall(jsonLength+jsonData.encode())
     
     def recvMSG(self, ser_socket):
-        
-        while True:
-            try :
-                msgLength = ser_socket.recv(16)
+
+        try :
+            msgLength = ser_socket.recv(16)
+            if msgLength :
                 msgLength  = int(msgLength.decode())
-                msgData = ser_socket.recv(msgLength)
-                print(msgData)
+                msgData = b''
+                while msgLength:
+                    newBuf = ser_socket.recv(msgLength)
+                    if not newBuf : 
+                        return None
+                    msgData += newBuf
+                    msgLength -= len(newBuf)
                 return json.loads(msgData)
-            except Exception as e:
-                print(e)
-                while True:
-                    bufferClear = ser_socket.recv(1024)
-                    if not bufferClear:
-                        self.requestReply(ser_socket)
-                        break
+        except Exception as e:
+            print(e)
+            while True:
+                bufferClear = ser_socket.recv(1024)
+                if not bufferClear:
+                    self.requestReply(ser_socket)
+                    break
     
     def requestReply(self, ser_socket):
         message = self.__messageForm
@@ -104,33 +109,48 @@ class SocketClient(object):
     
     def recvThread(self, ser_socket):
         while True:
-            getData = self.recvMSG(ser_socket)
-            print(getData)
-            if(getData["type"] == "request/RobotSettings" and getData["origin"] == "aiServer"):
-                print(getData)
-                message = self.__messageForm
-                message["destination"] = self.serverIP
-                message["type"] = "response/RobotSettings"
-                message["data"] = "ok"
-                self.sendMSG(ser_socket, message)
-                
-                
-   
-            elif(getData["type"] == "request/RealTimeStatus" and getData["origin"] == "aiServer"):
-                print(getData)
-                self.imgQue1.put(getData["data"]['roadCam'])
-                self.imgQue2.put(getData["data"]['humanCam'])
-                
-            elif(getData["type"] == "response/BluetoothConnection" and getData["origin"] == "aiServer"):
-                print(getData)
-                
-                #블루투스 연결 성공 웹으로 데이터 전송코드 작성하기
-                
-            elif(getData["type"] == "request/RobotControll" and getData["origin"] == "web"):
-                print(getData)
-                
-                #로봇 컨트롤 값을 라즈베리파이에 전송 (web모드)
-                #응답 필요없음
+            try:
+                getData = self.recvMSG(ser_socket)
+                if(getData["type"] == "request/RobotSettings" and getData["origin"] == "aiServer"):
+                    
+                    message = self.__messageForm
+                    message["destination"] = self.serverIP
+                    message["type"] = "response/RobotSettings"
+                    message["data"] = "ok"
+                    self.sendMSG(ser_socket, message)
+                    
+                    
+    
+                elif(getData["type"] == "request/RealTimeStatus" and getData["origin"] == "aiServer"):
+                    roadCam = self.base64TransformByte(getData["data"]["roadCam"])
+                    humanCam = self.base64TransformByte(getData["data"]["humanCam"])
+                    
+                    if self.imgQue1.qsize() >10:
+                        self.imgQue1.get()
+                        self.imgQue1.put(roadCam)
+                        
+                    else :
+                        self.imgQue1.put(roadCam)
+
+                    if self.imgQue2.qsize() >10:
+                        self.imgQue2.get()
+                        self.imgQue2.put(humanCam)
+                        
+                    else :
+                        self.imgQue2.put(humanCam)
+                    
+                elif(getData["type"] == "response/BluetoothConnection" and getData["origin"] == "aiServer"):
+                    print(getData)
+                    
+                    #블루투스 연결 성공 웹으로 데이터 전송코드 작성하기
+                    
+                elif(getData["type"] == "request/RobotControll" and getData["origin"] == "web"):
+                    print(getData)
+                    
+                    #로봇 컨트롤 값을 라즈베리파이에 전송 (web모드)
+                    #응답 필요없음
+            except Exception as e:
+                print("get error:",e)
     
     def realTimeStatusThread(self, ser_socket):
         pass
@@ -142,7 +162,7 @@ class SocketClient(object):
         
         # robot 기본 셋팅정보 가져오기
         # 시리얼로 요청함수 작성 일단 임시코드 사용 추후 수정해야함
-        self.recvThread()
+        self.recvThread(ser_socket)
         
                 
     def clientON(self,imgQueue1, imgQueue2, robotDataQueue, setDataQueue):
@@ -155,11 +175,3 @@ class SocketClient(object):
             sock.connect((self.serverIP, self.serverPORT))
             print("gogo")
             self.transferData(sock)
-
-while True:
-    try:
-        a = SocketClient()
-        a.clientON() #이걸 멀티프로세스로 실행
-    except Exception as ex:
-        time.sleep(2)
-        print(ex)

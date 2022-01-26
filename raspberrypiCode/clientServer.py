@@ -31,16 +31,10 @@ class SocketClient(object):
             cls._instance = super().__new__(cls)
         return cls._instance
     
-    def __init__(self, robotQueue,setDataQueue,cmdDataQueue,serialParentPipe,hCamQueue,joyParentPipe):
+    def __init__(self):
         cls = type(self)
         if not hasattr(cls, "_init"):
             print("__init__\n")
-            self.robotQueue = robotQueue
-            self.setDataQueue = setDataQueue
-            self.cmdDataQueue = cmdDataQueue
-            self.serialParentPipev = serialParentPipe
-            self.joyParentPipe = joyParentPipe
-            self.hCamQueue = hCamQueue
             self.serverIP = '192.168.137.1'
             self.serverPORT = 8485
             self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
@@ -52,20 +46,28 @@ class SocketClient(object):
         ser_socket.sendall(jsonLength+jsonData.encode())
     
     def recvMSG(self, ser_socket):
-        
         while True:
             try :
                 msgLength = ser_socket.recv(16)
-                msgLength  = int(msgLength.decode())
-                msgData = ser_socket.recv(msgLength)
-                return json.loads(msgData)
+                if msgLength :
+                    msgLength  = int(msgLength.decode())
+                    msgData = b''
+                    while msgLength:
+                        newBuf = ser_socket.recv(msgLength)
+                        if not newBuf : 
+                            return None
+                        msgData += newBuf
+                        msgLength -= len(newBuf)
+                    return json.loads(msgData)
             except Exception as e:
-                print("err3:",e)
+                print(e)
+                print("들어옴")
                 while True:
                     bufferClear = ser_socket.recv(1024)
                     if not bufferClear:
                         self.requestReply(ser_socket)
                         break
+       
     
     def requestReply(self, ser_socket):
         message = self.__messageForm
@@ -109,19 +111,13 @@ class SocketClient(object):
 
     def getEdge(self, frame):
         height, width = frame.shape[:2] # 이미지 높이, 너비
-        
         gray_img = Edge.grayscale(frame) # 흑백이미지로 변환
-            
         blur_img = Edge.gaussian_blur(gray_img, 3) # Blur 효과
-        
         canny_img = Edge.canny(blur_img, 70, 210) # Canny edge 알고리즘
-        
         vertices = np.array([[(150,height),(width/2-150, height/2+60), (width/2+150, height/2+60), (width-150,height)]], dtype=np.int32)
         ROI_img = Edge.region_of_interest(canny_img, vertices) # ROI 설정
-        
         line_arr = Edge.hough_lines(ROI_img, 1, 1 * np.pi/180, 30, 10, 20) # 허프 변환
         line_arr = np.squeeze(line_arr)
-            
         # 기울기 구하기
         slope_degree = (np.arctan2(line_arr[:,1] - line_arr[:,3], line_arr[:,0] - line_arr[:,2]) * 180) / np.pi
         
@@ -180,8 +176,8 @@ class SocketClient(object):
         while True:
             
             cam = cv2.VideoCapture(2)
-            #cam.set(3,320)
-            #cam.set(4,240)
+            cam.set(3,320)
+            cam.set(4,240)
             while cam.isOpened():
                 
                 try:
@@ -198,10 +194,7 @@ class SocketClient(object):
                         
                         frame = cv2.flip(frame, 0)
                         frame = cv2.flip(frame, 1)
-                        print("com1")
                         #frame = self.getEdge(frame)
-                        print("com2")
-
                         result, frame = cv2.imencode('.jpg', frame, self.encode_param)
                         imgData = np.array(frame)
                         byteData = imgData.tobytes()
@@ -211,22 +204,23 @@ class SocketClient(object):
                         if realTimeData.get("type")!=None and realTimeData["type"] == "responseData":
                             del(realTimeData["type"])
                         
-                        realTimeData["img"] = base64Data
+                        realTimeData["roadData"] = {"img":base64Data}
                         if hCamQueue.qsize() != 0 :
-                            realTimeData["img2"] = hCamQueue.get()
+                            print("hCam get")
+                            humanCamData = {"img":hCamQueue.get(),"amg8833":amg8833Queue.get(),"time":hCamTimeQueue.get()}
+                            realTimeData["humanData"] = humanCamData
                         
+                        else: 
+                            realTimeData["humanData"] = ""
+                        print("hCam, roadCam send")
                         message = self.__messageForm
                         message["destination"] = self.serverIP
                         message["type"]="request/RealTimeStatus"
                         message["data"]=realTimeData
-                        
                         self.sendMSG(ser_socket, message)
-                        # getData = self.recvMSG(ser_socket)
-                        # if(getData["type"] == "response/RealTimeStatus") and (getData["data"] == "ok"):
-                        #     print("realtimedata send ok")        
+                               
                 except Exception as e:
-                    cam.release()
-                    cv2.destroyAllWindows()
+                    pass
                     print("err1:",e)
                     
                 
@@ -238,7 +232,7 @@ class SocketClient(object):
 
         while True:
 
-            if self.robotQueue.qsize() != 0:
+            if robotQueue.qsize() != 0:
                 robotData = robotQueue.get()
                 self.comparative = robotData    
                 if robotData["type"] == "responseData":
@@ -267,16 +261,18 @@ class SocketClient(object):
         threadSend.start()
         print("3Round")
         while True:
+            #continue
+            getData = self.recvMSG(ser_socket)
             
-            pass
-            #getData = self.recvMSG(ser_socket)
-            """getData = ""
             if(getData["type"] == "request/RobotSettingModify" and getData["origin"] == "aiServer"):
                 pass
             elif(getData["type"] == "request/RobotControll" and getData["origin"] == "aiServer"):
-                pass
+                print(getData["data"])
+                if cmdDataQueue.qsize() != 0 :
+                    cmdDataQueue.put(getData["data"])
+                
             else: 
-                pass"""
+                pass
 
     def clientON(self):
         
@@ -301,18 +297,20 @@ while True:
         setDataQueue = Queue()
         cmdDataQueue = Queue()
         hCamQueue = Queue()
+        amg8833Queue = Queue()
+        hCamTimeQueue = Queue()
         
         serialParentPipe, serialChildPipe = Pipe()
         rasp_atmega_MultiProcess = Process(target=rasp_atmega.multipleStart, args=(robotQueue,setDataQueue,cmdDataQueue,blueQueue,serialChildPipe))
         
         humanCam = HumanCam.camera()
-        hCam_MultiProcess = Process(target = humanCam.frameUpdate, args=(hCamQueue,))
+        hCam_MultiProcess = Process(target = humanCam.frameUpdate, args=(hCamQueue,amg8833Queue,hCamTimeQueue))
 
+        joycon_MultiProcess.start()
         hCam_MultiProcess.start()
         rasp_atmega_MultiProcess.start()
-        #joycon_MultiProcess.start()
 
-        raspCLI_aiSER = SocketClient(robotQueue,setDataQueue,cmdDataQueue,serialParentPipe,hCamQueue,joyParentPipe)
+        raspCLI_aiSER = SocketClient()
         raspCLI_aiSER.clientON()
-    except Exception as ex:
-        print("err2:",ex)
+    except Exception as e:
+        print("err2:",e)

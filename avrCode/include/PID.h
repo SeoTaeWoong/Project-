@@ -7,7 +7,11 @@
 #ifndef _PID_H_
 #define _PID_H_
 
-float PID(float targetAngle, int currentAngle);
-void SetPidGain(float _p,float _i,float _d);
+void PIDCompute();
+void SetGainTunings(double _p,double _i,double _d);
+void SetOutputLimits(int min, int max);
+void PIDInit(double* currentAngle, double* output, double* targetAngle, double Kp, double Ki, double Kd);
+void SetSampleTime();
+int GetError();
 
 #endif

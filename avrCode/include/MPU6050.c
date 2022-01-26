@@ -1,5 +1,3 @@
-#define F_CPU 16000000L
-
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include "MPU6050.h"
@@ -15,25 +13,25 @@ void Mpu6050Write(unsigned char addr, unsigned char data);
 unsigned char Mpu6050Read(char addr);
 void Mpu6050GetRawData();
 void Mpu6050Calibration();
-void Mpu6050SetLastReadAngleData(unsigned long time,float axAngle,float ayAngle,float azAngle, float gxAngle, float gyAngle, float gzAngle);
-void setAngles(float angleX, float angleY, float angleZ);
+void Mpu6050SetLastReadAngleData(unsigned long time,double axAngle,double ayAngle,double azAngle, double gxAngle, double gyAngle, double gzAngle);
+void setAngles(double angleX, double angleY, double angleZ);
 
 unsigned long last_readTime;
-float last_axAngle, last_ayAngle, last_azAngle, last_gxAngle, last_gyAngle, last_gzAngle;
-float base_ax, base_ay, base_az, base_gx, base_gy, base_gz;
-float ax, ay, az, gx, gy, gz;
-float filterAngleX, filterAngleY, filterAngleZ;
-float dt;
+double last_axAngle, last_ayAngle, last_azAngle, last_gxAngle, last_gyAngle, last_gzAngle;
+double base_ax, base_ay, base_az, base_gx, base_gy, base_gz;
+double ax, ay, az, gx, gy, gz;
+double filterAngleX, filterAngleY, filterAngleZ;
+double dt;
 
 
 
 inline unsigned long get_last_time(){return last_readTime;}
-inline float get_last_axAngle(){return last_axAngle;}
-inline float get_last_ayAngle(){return last_ayAngle;}
-inline float get_last_azAngle(){return last_azAngle;}
-inline float get_last_gxAngle(){return last_gxAngle;}
-inline float get_last_gyAngle(){return last_gyAngle;}
-inline float get_last_gzAngle(){return last_gzAngle;}
+inline double get_last_axAngle(){return last_axAngle;}
+inline double get_last_ayAngle(){return last_ayAngle;}
+inline double get_last_azAngle(){return last_azAngle;}
+inline double get_last_gxAngle(){return last_gxAngle;}
+inline double get_last_gyAngle(){return last_gyAngle;}
+inline double get_last_gzAngle(){return last_gzAngle;}
 
 void Mpu6050Init(){
 	TWCR = 0x04; //TWI활성화
@@ -45,8 +43,6 @@ void Mpu6050Init(){
 	Mpu6050Write(0x1A, 0x05); // DLPF 10Hz로 설정
 	Mpu6050GetRawData();
  	Mpu6050Calibration();
- 	MillisInit(F_CPU);
- 	sei();
  	Mpu6050SetLastReadAngleData(Millis(),0,0,0,0,0,0);
 }
 
@@ -142,7 +138,7 @@ void Mpu6050GetRawData(){
 	gz = (int)mpuBuffer[10] << 8 | (int)mpuBuffer[11];
 }
 
-void Mpu6050SetLastReadAngleData(unsigned long time,float axAngle,float ayAngle,float azAngle, float gxAngle, float gyAngle, float gzAngle){
+void Mpu6050SetLastReadAngleData(unsigned long time,double axAngle,double ayAngle,double azAngle, double gxAngle, double gyAngle, double gzAngle){
 	last_readTime = time;
 	last_axAngle=axAngle;
 	last_ayAngle=ayAngle;
@@ -155,13 +151,13 @@ void Mpu6050SetLastReadAngleData(unsigned long time,float axAngle,float ayAngle,
 void Mpu6050Calibration(){
 	
 	int num_readings = 10;
-	float accelX = 0;
-	float accelY = 0;
-	float accelZ = 0;
+	double accelX = 0;
+	double accelY = 0;
+	double accelZ = 0;
 	
-	float gyroX = 0;
-	float gyroY = 0;
-	float gyroZ = 0;
+	double gyroX = 0;
+	double gyroY = 0;
+	double gyroZ = 0;
 	
 	Mpu6050GetRawData();
 	
@@ -196,54 +192,76 @@ void Mpu6050SangboFilter(){
 	Mpu6050GetRawData();
 	unsigned long t_now = Millis();
 	
-	float gyro_x = (gx - base_gx)/FS_SEL;
-	float gyro_y = (gy - base_gy)/FS_SEL;
-	float gyro_z = (gz - base_gz)/FS_SEL;
+	double gyro_x = (gx - base_gx)/FS_SEL;
+	double gyro_y = (gy - base_gy)/FS_SEL;
+	double gyro_z = (gz - base_gz)/FS_SEL;
 	
-	float accel_x = ax;
-	float accel_y = ay;
-	float accel_z = az;
+	double accel_x = ax;
+	double accel_y = ay;
+	double accel_z = az;
 	
-	float accel_angle_y = atan(-1*accel_x/sqrt(pow(accel_y,2) + pow(accel_z,2)))*RADIANS_TO_DEG;
-	float accel_angle_x = atan(accel_y/sqrt(pow(accel_x,2) + pow(accel_z,2)))*RADIANS_TO_DEG;
-	float accel_angle_z = 0;
+	double accel_angle_y = atan(-1*accel_x/sqrt(pow(accel_y,2) + pow(accel_z,2)))*RADIANS_TO_DEG;
+	double accel_angle_x = atan(accel_y/sqrt(pow(accel_x,2) + pow(accel_z,2)))*RADIANS_TO_DEG;
+	double accel_angle_z = 0;
 	
 	dt = (t_now - get_last_time())/1000.0;
 	SetDT(dt);
-	float gyro_angle_x = gyro_x*dt + get_last_axAngle();
-	float gyro_angle_y = gyro_y*dt + get_last_ayAngle();
-	float gyro_angle_z = gyro_z*dt + get_last_azAngle();
+	double gyro_angle_x = gyro_x*dt + get_last_axAngle();
+	double gyro_angle_y = gyro_y*dt + get_last_ayAngle();
+	double gyro_angle_z = gyro_z*dt + get_last_azAngle();
 
-	float unfilter_gyro_angle_x = gyro_x*dt + get_last_gxAngle();
-	float unfilter_gyro_angle_y = gyro_y*dt + get_last_gyAngle();
-	float unfilter_gyro_angle_z = gyro_z*dt + get_last_gzAngle();
+	double unfilter_gyro_angle_x = gyro_x*dt + get_last_gxAngle();
+	double unfilter_gyro_angle_y = gyro_y*dt + get_last_gyAngle();
+	double unfilter_gyro_angle_z = gyro_z*dt + get_last_gzAngle();
 
-	float alpha = 0.96;
-	float angleX = alpha*gyro_angle_x + (1.0 - alpha)*accel_angle_x;
-	float angleY = alpha*gyro_angle_y + (1.0 - alpha)*accel_angle_y;
-	float angleZ = gyro_angle_z;
+	double alpha = 0.96;
+	double angleX = alpha*gyro_angle_x + (1.0 - alpha)*accel_angle_x;
+	double angleY = alpha*gyro_angle_y + (1.0 - alpha)*accel_angle_y;
+	double angleZ = gyro_angle_z;
 
 	Mpu6050SetLastReadAngleData(t_now, angleX, angleY, angleZ, unfilter_gyro_angle_x, unfilter_gyro_angle_y, unfilter_gyro_angle_z);	
 	
-	//setAngles(gx - base_gx, gyro_y, gyro_z);
 	setAngles(angleX, angleY, angleZ);
 }
 
-void setAngles(float angleX, float angleY, float angleZ){
+void setAngles(double angleX, double angleY, double angleZ){
 	filterAngleX = angleX;
 	filterAngleY = angleY;
 	filterAngleZ = angleZ;
 }
 
-int GetMpu6050FilterAngleX(){
-	return (int)filterAngleX;
+double GetMpu6050FilterAngleX(){
+	return filterAngleX;
 }
 
-int GetMpu6050FilterAngleY(){
-	return (int)filterAngleY;
+double GetMpu6050FilterAngleY(){
+	return filterAngleY;
 }
 
-int GetMpu6050FilterAngleZ(){
-	return (int)filterAngleZ;
+double GetMpu6050FilterAngleZ(){
+	return filterAngleZ;
 }
 
+int GetMpu6050DefaultGyroX(){
+	return (int)gx;
+}
+
+int GetMpu6050DefaultGyroY(){
+	return (int)gy;
+}
+
+int GetMpu6050DefaultGyroZ(){
+	return (int)gz;
+}
+
+int GetMpu6050DefaultAccX(){
+	return (int)gx;
+}
+
+int GetMpu6050DefaultAccY(){
+	return (int)gy;
+}
+
+int GetMpu6050DefaultAccZ(){
+	return (int)gz;
+}
