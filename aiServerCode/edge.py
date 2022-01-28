@@ -51,20 +51,20 @@ def get_fitline(img, f_lines): # 대표선 구하기
     output = cv2.fitLine(lines,cv2.DIST_L2,0, 0.01, 0.01)
     vx, vy, x, y = output[0], output[1], output[2], output[3]
     x1, y1 = int(((img.shape[0]-1)-y)/vy*vx + x) , img.shape[0]-1
-    x2, y2 = int(((img.shape[0]/2+100)-y)/vy*vx + x) , int(img.shape[0]/2+100)
+    x2, y2 = int(((img.shape[0]/2)-y)/vy*vx + x) , int(img.shape[0]/2)
     
     
     result = [x1,y1,x2,y2]
     return result
 
-def get_point(img, f_lines): # 대표선 구하기   
+def get_point(img, f_lines):    
     lines = np.squeeze(f_lines)
     lines = lines.reshape(lines.shape[0]*2,2)
     rows,cols = img.shape[:2]
     output = cv2.fitLine(lines,cv2.DIST_L2,0, 0.01, 0.01)
     vx, vy, x, y = output[0], output[1], output[2], output[3]
     x1, y1 = int(((img.shape[0]-1)-y)/vy*vx + x) , img.shape[0]-1
-    x2, y2 = int(((img.shape[0]/2+20)-y)/vy*vx + x) , int(img.shape[0]/2+20)
+    x2, y2 = int(((img.shape[0]/2-160)-y)/vy*vx + x) , int(img.shape[0]/2-160)
     
     result = [x1,y1,x2,y2]
     return result, x2

@@ -91,9 +91,10 @@ class RaspAtmega(object):
                 if self.__robotData.get("controll") !=None and (self.__robotData["controll"] == 1) and self.cmdQueue.qsize() != 0:
                     
                     command = self.cmdQueue.get()
-                    if self.__command != command:
-                        self.__command = command
+                    
+                    if self.__command == command:
                         continue
+                    print(command, self.cmdQueue.qsize())
                     lock.acquire()
                     self.serialWrite("controll")
                     lock.release()

@@ -1,23 +1,21 @@
-
-import cv2, numpy as np
-from skimage.metrics import structural_similarity as compare_ssim
-
-cap = cv2.VideoCapture(0)
-tempImg = []
-imgs = []
-
-while True:
-    status, frame = cap.read()
-    if status:
-        imgs.append(frame)
-        if len(imgs) > 1:
-            _imgs = imgs
-            _imgs.append(frame)
-            
-        cv2.imshow("frame", frame)
+import threading as Threading
+class testClass():
+    def test(self, a):
+        at = Threading.Thread(target=self.threadTest, args=(a,))
+        at.start()
+        at.join()
         
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+        print(a)
+        pass
+    
+    def threadTest(self, a):
+        _a = a;
+        while(_a < 100):
+            _a+=1
+        print(_a) 
+        
+    
 
-cap.release()
-cv2.destroyAllWindows()
+tc = testClass()
+a = 1
+tc.test(a)

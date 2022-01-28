@@ -47,6 +47,20 @@
                     </ul>
                 </li>
                 <li class="tableData">
+                    {% for data in range(len(getData)) %}
+                        <ul class="defaultData">
+                            <li>
+                                이름 : {{data[1]}}
+                            </li>
+                            <li>
+                                None
+                            </li>
+                            <li>
+                                {{data[4]}}
+                            </li>
+                        </ul>
+                    {% endfor%}
+                
                     <ul class="defaultData">
                         <li>
                             인물감지

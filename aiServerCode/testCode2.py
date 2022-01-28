@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import cv2
 import time,sys
-%matplotlib inline
+import os
+
 
 pix_res = (8,8) # pixel resolution
 xx,yy = (np.linspace(0,pix_res[0],pix_res[0]),
@@ -32,7 +33,13 @@ while True:
     for index in range(len(data)):
         if int(data[index]) < 25:
             data[index] = 0.
-        
+    
+    os.makedirs("../hi")
     data = interp(np.reshape(data,pix_res))
+    
+
+
+
+    
     break
     

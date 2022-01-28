@@ -68,7 +68,7 @@ class camera(object):
     def checkCam(self):
         i=-1
         while i<2:
-            cam = cv2.VideoCapture(1)
+            cam = cv2.VideoCapture(i)
             cam.set(3,320)
             cam.set(4,240)
             if cam.isOpened():
@@ -86,7 +86,7 @@ class camera(object):
         print("update~~")
         prev_time = time.time()
         fps = 10
-        self.amg8833Start()
+        #self.amg8833Start()
         while True:
             index = self.checkCam()
             
@@ -97,10 +97,11 @@ class camera(object):
                         current_time = time.time() - prev_time
                         if ret and current_time > 1./fps:
                             prev_time = time.time()
-                            amgDataQue = Queue()
-                            amg8833Thread = Threading.Thread(target=self.getAMG8833, args=(amgDataQue,))
-                            amg8833Thread.start()
-                            
+                            #amgDataQue = Queue()
+                            #amg8833Thread = Threading.Thread(target=self.getAMG8833, args=(amgDataQue,))
+                            #amg8833Thread.start()
+                            frame = cv2.flip(frame,1)
+                            frame = cv2.flip(frame,0)
                             result, frame = cv2.imencode('.jpg', frame, self.encode_param)
                             imgData = np.array(frame)
                             byteData = imgData.tobytes()
@@ -109,19 +110,21 @@ class camera(object):
                             now = time.localtime()
                             imgTime = "%04d/%02d/%02d %02d:%02d:%02d" % (now.tm_year, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec)
                             
-                            amg8833Thread.join()
+                            #amg8833Thread.join()
                             
                             if hCamQueue.qsize() > 20:
                                 hCamQueue.get()
                                 amg8833Queue.get()
-                                hCamTimeQueue.get(imgTime)
+                                hCamTimeQueue.get()
                                 
                                 hCamQueue.put(base64Data)
-                                amg8833Queue.put(amgDataQue.get())
+                                amg8833Queue.put(str(range(1,10)))
+                                #amg8833Queue.put(amgDataQue.get())
                                 hCamTimeQueue.put(imgTime)
                             else:
                                 hCamQueue.put(base64Data)
-                                amg8833Queue.put(amgDataQue.get())
+                                amg8833Queue.put(str(range(1,10)))
+                                #amg8833Queue.put(amgDataQue.get())
                                 hCamTimeQueue.put(imgTime)
                                 
                             

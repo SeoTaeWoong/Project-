@@ -24,7 +24,7 @@ class SocketClient(object):
                    "destination":"",
                    "type":"request/purpose",
                    "data":""}
-
+    __cmd = ""
     def __new__(cls, *args, **kwargs):
         if not hasattr(cls, "_instance"):
             print("__new__\n")
@@ -61,7 +61,6 @@ class SocketClient(object):
                     return json.loads(msgData)
             except Exception as e:
                 print(e)
-                print("들어옴")
                 while True:
                     bufferClear = ser_socket.recv(1024)
                     if not bufferClear:
@@ -172,7 +171,10 @@ class SocketClient(object):
         comparativeData = self.comparative
         prev_time = time.time()
         fps = 10
-
+        
+        
+        
+        
         while True:
             
             cam = cv2.VideoCapture(2)
@@ -206,13 +208,13 @@ class SocketClient(object):
                         
                         realTimeData["roadData"] = {"img":base64Data}
                         if hCamQueue.qsize() != 0 :
-                            print("hCam get")
+                            
                             humanCamData = {"img":hCamQueue.get(),"amg8833":amg8833Queue.get(),"time":hCamTimeQueue.get()}
                             realTimeData["humanData"] = humanCamData
                         
                         else: 
-                            realTimeData["humanData"] = ""
-                        print("hCam, roadCam send")
+                            realTimeData["humanData"] = "NoneIMG"
+                        
                         message = self.__messageForm
                         message["destination"] = self.serverIP
                         message["type"]="request/RealTimeStatus"
@@ -261,18 +263,26 @@ class SocketClient(object):
         threadSend.start()
         print("3Round")
         while True:
-            #continue
-            getData = self.recvMSG(ser_socket)
-            
-            if(getData["type"] == "request/RobotSettingModify" and getData["origin"] == "aiServer"):
-                pass
-            elif(getData["type"] == "request/RobotControll" and getData["origin"] == "aiServer"):
-                print(getData["data"])
-                if cmdDataQueue.qsize() != 0 :
-                    cmdDataQueue.put(getData["data"])
+            try:
+                getData = self.recvMSG(ser_socket)
                 
-            else: 
-                pass
+                if(getData["type"] == "request/RobotSettingModify" and getData["origin"] == "aiServer"):
+                    pass
+                elif(getData["type"] == "request/RobotControll" and getData["origin"] == "aiServer"):
+                    
+                    if self.__cmd == getData["data"]:
+                        continue
+                    else:
+                        if cmdDataQueue.qsize() > 5:
+                            cmdDataQueue.get()
+                            cmdDataQueue.put(getData["data"])
+                        else:
+                            cmdDataQueue.put(getData["data"])
+                        self.__cmd = getData["data"]
+                else: 
+                    pass
+            except Exception as e:
+                print("sendErr : ", e)
 
     def clientON(self):
         
