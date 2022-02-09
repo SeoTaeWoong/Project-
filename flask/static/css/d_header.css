@@ -1,13 +1,54 @@
 
 .header{
-    width:80vw;
+    position:fixed;
+    z-index:1;
+    top:0px;
+    left:0px;
+    width:100vw;
     height:auto;
     margin: 0 auto;
-    padding:80px 0px 50px 0;
+    background:white;
+    display:flex;
+    
 }
 
 .header > .title{
-    font-size:30px;
-    text-shadow: 3px 2px 1px gray;
+    width:40%;
+    display:inline-block;
+    font-size:20px;
+    color:rgba(230,230,230, 0.5);
+    text-shadow: 3px 2px 1px black;
     user-select: none;
+    text-align:center;
+}
+
+
+.header > .menubar {
+    width:30%;
+    display:inline-flex;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.header > .menubar  > li{
+    float: left;
+    margin-right: 30px;
+    cursor: pointer;
+}
+
+.header > .menubar > li > a{
+    color:black;
+    text-decoration: none;
+}
+
+.header > .menubar > li> a:hover{
+    color:blue;
+}
+
+.header > .loginbar > {
+    width:30%;
+    display:inline-block;
+    height: 40px;
 }

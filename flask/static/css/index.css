@@ -1,7 +1,44 @@
 main{
-    width:80%;
+    width:100%;
     height:auto;
-    margin:50px auto 150px;
+    
+}
+
+main > .mainMenuImgWrap{
+    width:100vw;
+    height:800px;
+    background: url("../img/spy-cam1.jpg") fixed;
+    background-repeat : no-repeat;
+    background-size : cover;
+    position:relative;
+}
+
+main > .mainMenuImgWrap > .textArea{
+    color: white;
+    position:absolute;
+    animation: textSlide 2s ease-in-out;
+    top:180px;
+    left:200px;
+}
+
+@keyframes textSlide{
+    from{
+        left:-100px;
+        opacity:0;
+    }
+    to{
+        left:200px;
+        opacity:1;
+    }
+}
+
+main > .mainMenuImgWrap > .textArea > h1{
+    font-size: 60px;
+}
+
+main > .mainMenuImgWrap > .textArea > p{
+    font-size:20px;
+    padding-top:30px;
 }
 
 main > video{
@@ -11,20 +48,24 @@ main > video{
     margin-bottom:35px;
 }
 
-main > .members{
-    width:100%;
+main > .mainMenuImgWrap > .members{
+    width:50%;
     height:auto;
     display:flex;
     justify-content: space-between;
+    position:absolute;
+    bottom:120px;
+    animation: textSlide 2s;
+    left:200px;
 }
 
-main > .members > figure{
+main >.mainMenuImgWrap > .members > figure{
     width:20%;
     height:auto;
     border: 1px solid black;
 }
 
-main > .members > figure > img{
+main > .mainMenuImgWrap > .members > figure > img{
     display:block;
     width:150px;
     height:150px;
@@ -34,10 +75,71 @@ main > .members > figure > img{
 }
 
 
-main > .members > figure > .introduce{
+main > .mainMenuImgWrap > .members > figure > .introduce{
     width:100%;
     text-align: center;
     padding: 0;
     font-weight: bold;
+    color:white;
 }
 
+main > .demoVideo{
+    width:60%;
+    height:auto;
+    margin:0 auto;
+    padding:30px;
+    
+    background: rgba(0,149,255,0.7);
+    background-repeat : no-repeat;
+    background-size : cover;
+    
+}
+
+@keyframes demoSlide{
+    from{
+        left:-500px;
+        opacity:0.5;
+    }
+    to{
+        left:0px;
+        opacity:1;
+    }
+}
+
+
+
+main > .demoVideo > h1{
+    color: white;
+    font-size:30px;
+    margin-bottom:15px;
+}
+
+main > .demoVideo > .mainVideo{
+    display:inline-block;
+    width:640px;
+    height:320px;
+    float:left;
+    margin-right:30px;
+    animation: demoSlide;
+}
+
+main > .demoVideo > .videoList{
+    display:inline-flex;
+    flex-direction:column;
+    width:200px;
+    height:320px;
+    
+}
+
+main > .demoVideo > .videoList > .item{
+    width:100%;
+    height:30px;
+    cursor:pointer;
+    color:white;
+    background:rgba(50,50,50,1);
+    border:1px solid gray;
+}
+
+main > .demoVideo > .videoList > .item:hover{
+    background:rgba(255,255,255,0.2);
+}

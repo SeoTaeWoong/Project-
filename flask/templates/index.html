@@ -10,57 +10,81 @@
     </head>
     <body>
         <div class="header">
-            <div class="loginBtn">
-
-            </div>
-            <div class="title">
-                <h1>프로젝트' 추노</h1>
-            </div>
-        </div>
-        <div class="menubar">
-            <ul>
+            
+            <ul class="menubar">
                 <li><a href="{{url_for('index')}}">Home</a></li>
                 <li><a href="{{url_for('liveStreaming')}}">Live Streaming</a></li>
                 <li><a href="{{url_for('anomalyDetection')}}">Anomaly Detection</a></li>
             </ul>
+            
+            
+            <div class="title">
+                <h1>추노</h1>
+            </div>
+            <div class="loginbar">
+
+            </div>
+            
         </div>
         <main>
-            <video src="abc.mp3" controls>
-
-            </video>
-            <div class="members">
-                <figure>
-                    <img src="abc.jpg">
-                    <ul class="introduce">
-                        <li>서태웅</li>
-                        <li>FIRMWARE</li>
-                    </ul>
-                </figure>
-                <figure>
-                    <img src="abc.jpg"> 
-                    <ul class="introduce">
-                        <li>장영대</li>
-                        <li>HARDWARE</li>
-                    </ul>
-                </figure>
-                <figure>
-                    <img src="abc.jpg">
-                    <ul class="introduce">
-                        <li>김성탄</li>
-                        <li>HARDWARE</li>
-                    </ul>
-                </figure>
-                <figure>
-                    <img src="abc.jpg">
-                    <ul class="introduce">
-                        <li>강두혁</li>
-                        <li>SOFTWARE</li>
-                    </ul>
-                </figure>
+            <div class="mainMenuImgWrap">
+                <div class="textArea">
+                    <h1>Team' 추노</h1>
+                    <p>사람을 인식하여 비정상적 체온 감지 프로젝트</p>
+                </div>
+                <div class="members">
+                    <figure>
+                        <img src="abc.jpg">
+                        <ul class="introduce">
+                            <li>서태웅</li>
+                            <li>FW/SW</li>
+                        </ul>
+                    </figure>
+                    <figure>
+                        <img src="abc.jpg"> 
+                        <ul class="introduce">
+                            <li>장영대</li>
+                            <li>HARDWARE</li>
+                        </ul>
+                    </figure>
+                    <figure>
+                        <img src="abc.jpg">
+                        <ul class="introduce">
+                            <li>김성탄</li>
+                            <li>HARDWARE</li>
+                        </ul>
+                    </figure>
+                    <figure>
+                        <img src="abc.jpg">
+                        <ul class="introduce">
+                            <li>강두혁</li>
+                            <li>SOFTWARE</li>
+                        </ul>
+                    </figure>
+                </div>
             </div>
+            <div class="demoVideo">
+                <h1>시연 영상</h1>
+                <video class="mainVideo" src="abc.mp3" controls>
+    
+                </video>
+                <ul class="videoList">
+                    <li class="item">
+                        시연영상1
+                    </li>
+                    <li class="item">
+                        시연영상2
+                    </li>
+                </ul>
+            </div>
+            <div class="robotWrap">
+                
+            </div>
+            
+            
         </main>
         <div class="footer">
-
+            asdasd
         </div>
     </body>
 </html>

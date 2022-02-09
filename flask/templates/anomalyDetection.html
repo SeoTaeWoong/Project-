@@ -36,95 +36,92 @@
                 <li class="tableHeader">
                     <ul>
                         <li>
-                            감지항목
+                            감지항목 No : {{paging}}
                         </li>
                         <li>
-                            내용
+                            내용 : {{getData|length}}
                         </li>
                         <li>
                             날짜
                         </li>
                     </ul>
                 </li>
+                {% for index in range(0,getData|length) %}
                 <li class="tableData">
-                    {% for data in range(len(getData)) %}
-                        <ul class="defaultData">
-                            <li>
-                                이름 : {{data[1]}}
-                            </li>
-                            <li>
-                                None
-                            </li>
-                            <li>
-                                {{data[4]}}
-                            </li>
-                        </ul>
-                    {% endfor%}
                 
                     <ul class="defaultData">
                         <li>
-                            인물감지
+                        
+                            이름 : {{getData[index][1]}}
                         </li>
                         <li>
-                            마스크 미착용
+                            None
                         </li>
                         <li>
-                            2021-04-24 15:44
+                            {{getData[index][8]}}
                         </li>
                     </ul>
+                    
                     <ul class="moreData">
-                        <li>
-                            이름
+                        
+                        <li class="imgArea">
+                            <figure class="mainImg">
+                                <img src="{{url_for('static', filename=getData[index][2])}}">
+                            </figure>
+                            <figure class="imgTab">
+                                <img src="{{url_for('static', filename=getData[index][2])}}">
+                                <img src="{{url_for('static', filename=getData[index][3])}}">
+                                <img src="{{url_for('static', filename=getData[index][4])}}">
+                                <img src="{{url_for('static', filename=getData[index][5])}}">
+                            </figure>
                         </li>
-                        <li>
-                            마스크착용
-                        </li>
-                        <li>
-                            측정 온도
-                        </li>
-                        <li>
-                            감지 성별
-                        </li>
-                        <li>
-                            이미지
+                        <li class="infoWrap">
+                            <ul class="infoArea">
+                                <li>
+                                    이름 : {{getData[index][1]}}
+                                </li>
+                                <li>
+                                    측정 온도 : {{getData[index][6]}}°C
+                                </li>
+                                <li>
+                                    촬영 시간 : {{getData[index][8]}}
+                                </li>
+                            </ul>
+                            <ul class="measArea">
+                                <li>
+                                    이름 : {{getData[index][1]}}
+                                </li>
+                                <li>
+                                    마스크착용 : 
+                                </li>
+                                <li>
+                                    감지 성별 : 
+                                </li>
+                                
+                                <li class="buttonWrap">
+                                    <div class="button">검사하기</div>
+                                </li>
+                            </ul>
+                            
                         </li>
                     </ul>
+              
+                    
                 </li>
-                <li class="tableData">
-                    <ul class="defaultData">
-                        <li>
-                            인물감지
-                        </li>
-                        <li>
-                            마스크 미착용
-                        </li>
-                        <li>
-                            2021-04-24 15:44
-                        </li>
-                    </ul>
-                    <ul class="moreData">
-                        <li>
-                            이름
-                        </li>
-                        <li>
-                            마스크착용
-                        </li>
-                        <li>
-                            측정 온도
-                        </li>
-                        <li>
-                            감지 성별
-                        </li>
-                        <li>
-                            이미지
-                        </li>
-                    </ul>
-                </li>
+                {%endfor%}
             </ul>
-            
+            <ul>
+                {% for index in range(0,paging) %}
+                <li>
+                    <div OnClick="location.href ='./anomalyDetection?page={{index+1}}&num=5'" style="cursor:pointer">
+                        {{index+1}}
+                    </div>
+                </li>
+                {%endfor%}
+            </ul>
         </main>
         <div class="footer">
-
+            asdasd
         </div>
     </body>
     <script type="text/javascript" src="{{url_for('static', filename='js/anomalyDetection.js')}}"></script>

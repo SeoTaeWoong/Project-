@@ -1,6 +1,5 @@
 import socket
 import numpy as np
-import cv2
 import threading as Threading
 #import millis
 import json
@@ -29,7 +28,6 @@ class SocketClient(object):
             print("__init__\n")
             self.serverIP = '121.139.165.163'
             self.serverPORT = 8485
-            self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
             cls._init = True
     
 

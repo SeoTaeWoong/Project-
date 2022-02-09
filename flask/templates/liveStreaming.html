@@ -20,147 +20,143 @@
                 </div>
             </div>
             <div class="leftWrap">
-                <ul>
-                    <li class="statusWrap">
-                        - STATUS -
-                        <ul class="status">
-                            <li>
-                                Connection: ON
-                            </li>
-                            <li>
-                                Controller: 
-                                <span class="controllerValue"></span>
-                            </li>
-                            <li>
-                                MaxSPD:
-                                <span class="maxSPDValue"></span>
-                            </li>
-                            <li>
-                                MinSPD:
-                                <span class="minSPDValue"></span>
-                            </li>
-                            <li>
-                                SPD: 50
-                            </li>
-                            <li>
-                                DEG: 30
-                            </li>
-                            <li>
-                                Kp:
-                                <span class="kpValue"></span>
-                            </li>
-                            <li>
-                                Ki:
-                                <span class="kiValue"></span>
-                            </li>
-                            <li>
-                                Kd:
-                                <span class="kdValue"></span>
-                            </li>
-                        </ul>
-                    </li>
-                </ul>
+                <div class="checkNum">
+                    <div class="checkNumTitle">
+                        검사자 수 (당일 기준)
+                    </div>
+                    <div class="checkInfoArea">
+                        <div class="checkNumResult">
+                            10
+                        </div>
+                        <div class="checkNumEffect">
+                            10
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="noMaskNum">
+                    <div class="noMaskNumTitle">
+                        마스크 미착용자 수 (당일 기준)
+                    </div>
+                    <div class="noMaskInfoArea">
+                        <div class="noMaskNumResult">
+                            0
+                        </div>
+                        <div class="noMaskNumEffect">
+                            0
+                        </div>
+                    </div>
+                    
+                </div>
+                
+                <div class="maskPlot">
+                    <div id="maskUsagePlot" class="maskUsagePlot">
+                        
+                    </div>
+                </div>
+                
             </div>
             <div class="mainWrap">
                 <div class="imgStreaming">
                     <div class="mainCam">
                         <!--<img src="{{url_for('liveCam01')}}">-->
-                        <img src="..">
+                        <img class="mainCamImg" src="..">
                     </div>
-                    <div class="subCam">
-                        <div class="sub1"></div>
-                        <div class="sub2"></div>
+                    <div class="roadInfo">
+                        <div class="roadCam">
+                            <img class="roadCamImg" src="..">
+                        </div>
+                        <div class="carInfo">
+                            <div class="carTitle">
+                                Car Info
+                            </div>
+                            <div class="carStatus">
+                                Controller:
+                                direction:
+                                Spd:
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="plot">
-                    <div class="PID">
-                        
+                <div class="chartWrap">
+                    <div class="chartListArea">
+                        <ul class="chartList">
+                            <li class="chartHead">
+                                <ul>
+                                    <li>
+                                        PersonID
+                                    </li>
+                                    <li>
+                                        Temp
+                                    </li>
+                                    <li>
+                                        Mask
+                                    </li>
+                                    <li>
+                                        Date
+                                    </li>
+                                    <li>
+                                        Info
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="chartTables">
+                                <ul>
+                                    <li class="chartTable">
+                                        
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
                     </div>
-                    <div class="PWM">
-
+                    <div class="chartInfoArea">
+                        <div class="chartInfo">
+                            <ul>
+                                <li class="chartInfoTitle">
+                                    INFORMATION
+                                </li>
+                                <li class="chartImageArea">
+                                    <figure>
+                                        <img src="..">
+                                    </figure>
+                                    <ul>
+                                        <li>
+                                            1번
+                                        </li>
+                                        <li>
+                                            2번
+                                        </li>
+                                        <li>
+                                            3번
+                                        </li>
+                                        <li>
+                                            4번
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="chartIntelligence">
+                                    <div class="userName">
+                                        이름: ????
+                                    </div>
+                                    <div class="predictedAge">
+                                        예측 나이: ????
+                                    </div>
+                                    <div class="predictedGender">
+                                        예측 성별: ????
+                                    </div>
+                                    <div class="temperature">
+                                        측정 온도: ????
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="rightSidebar"></div>
         </div>
-        <div class="modal">
-            <div class="modalHeader">
-                <div class="modalTitle">OPTION</div>
-                <div class="resetBtn">
-                    <img src="{{url_for('static', filename='img/reset.png')}}">
-                </div>
-            </div>
-            <ul class="contentsWrap">
-                <li class="maxSPDWrap">
-                    <div class="optionName">
-                        MaxSPD: 
-                        <span class="modalMaxSPDValue"></span>
-                    </div>
-                    <div class="optionValue">
-                        <input class="modalMaxSPDRange gauge" type="range" min="100" max="160" step="1">
-                    </div>
-                </li>
-                <li class="minSPDWrap">
-                    <div class="optionName">
-                        MinSPD:
-                        <span class="modalMinSPDValue"></span>
-                    </div>
-                    <div class="optionValue">
-                        <input class="modalMinSPDRange gauge" type="range" min="0" max="60" step="1">
-                    </div>
-                </li>
-                <li class="modeChangeWrap">
-                    <div class="optionName">
-                        Controller
-                    </div>
-                    <div class="optionValue">
-                        <label>
-                            <input class="modalControllerRange tooglebtn" type="range" min="1" max="3" step="1">
-                            <ul>
-                                <li>Auto</li>
-                                <li>Web</li>
-                                <li>JoyCon</li>
-                            </ul>
-                        </label>
-                    </div>
-                </li>
-                <li class="kpWrap">
-                    <div class="optionName">
-                        Kp:
-                        <span class="modalKpValue"></span>
-                    </div>
-                    <div class="optionValue">
-                        <input class="modalKpRange gauge" type="range" min="100" max="160" step="1">
-                    </div>
-                </li>
-                <li class="kiWrap">
-                    <div class="optionName">
-                        Ki:
-                        <span class="modalKiValue"></span>
-                    </div>
-                    <div class="optionValue">
-                        <input class="modalKiRange gauge" type="range" min="100" max="160" step="1">
-                    </div>
-                </li>
-                <li class="kdWrap">
-                    <div class="optionName">
-                        Kd:
-                        <span class="modalKdValue"></span>
-                    </div>
-                    <div class="optionValue">
-                        <input class="modalKdRange gauge" type="range" min="100" max="160" step="1">
-                    </div>
-                </li>
-            </ul>
-            <div class="modalFooter">
-                <div class="cancleBtn">
-                    Cancle
-                </div>
-                <div class="applyBtn">
-                    Apply
-                </div>
-            </div>
-        </div>
+    
     </body>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
     <script type="text/javascript" src="{{url_for('static', filename='js/liveStreaming.js')}}"></script>
 </html>

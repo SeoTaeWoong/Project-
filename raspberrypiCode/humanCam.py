@@ -46,15 +46,18 @@ class camera(object):
                 print("No AMG8833 Found - Check Your Wiring")
                 continue
             else:
+                print("AMG8833 OK")
                 return
     
     def getAMG8833(self, amgDataQue):
         pix_to_read = 64
         while True:
             status,data = self.sensor.read_temp(pix_to_read) # read pixels with status
+            
             if status:
                 continue
             else:
+            
                 amgDataQue.put(data)
                 return 
 
@@ -86,7 +89,8 @@ class camera(object):
         print("update~~")
         prev_time = time.time()
         fps = 10
-        #self.amg8833Start()
+        self.amg8833Start()
+        
         while True:
             index = self.checkCam()
             
@@ -97,9 +101,9 @@ class camera(object):
                         current_time = time.time() - prev_time
                         if ret and current_time > 1./fps:
                             prev_time = time.time()
-                            #amgDataQue = Queue()
-                            #amg8833Thread = Threading.Thread(target=self.getAMG8833, args=(amgDataQue,))
-                            #amg8833Thread.start()
+                            amgDataQue = Queue()
+                            amg8833Thread = Threading.Thread(target=self.getAMG8833, args=(amgDataQue,))
+                            amg8833Thread.start()
                             frame = cv2.flip(frame,1)
                             frame = cv2.flip(frame,0)
                             result, frame = cv2.imencode('.jpg', frame, self.encode_param)
@@ -110,7 +114,7 @@ class camera(object):
                             now = time.localtime()
                             imgTime = "%04d/%02d/%02d %02d:%02d:%02d" % (now.tm_year, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec)
                             
-                            #amg8833Thread.join()
+                            amg8833Thread.join()
                             
                             if hCamQueue.qsize() > 20:
                                 hCamQueue.get()
@@ -118,13 +122,11 @@ class camera(object):
                                 hCamTimeQueue.get()
                                 
                                 hCamQueue.put(base64Data)
-                                amg8833Queue.put(str(range(1,10)))
-                                #amg8833Queue.put(amgDataQue.get())
+                                amg8833Queue.put(amgDataQue.get())
                                 hCamTimeQueue.put(imgTime)
                             else:
                                 hCamQueue.put(base64Data)
-                                amg8833Queue.put(str(range(1,10)))
-                                #amg8833Queue.put(amgDataQue.get())
+                                amg8833Queue.put(amgDataQue.get())
                                 hCamTimeQueue.put(imgTime)
                                 
                             

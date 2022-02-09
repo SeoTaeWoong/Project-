@@ -167,7 +167,7 @@ class SocketServer(object):
                 message["type"] = "request/RobotControll"
                 message["data"] = "done"
                 self.sendMSG(cli_socket, message)
-            print("road Err:", e)
+            
             
             
 
@@ -281,6 +281,7 @@ class SocketServer(object):
                     else:
                         humanData = getData["data"]["humanData"]["img"] 
                         amg8833Data = getData["data"]["humanData"]["amg8833"]
+                        
                         timeData = getData["data"]["humanData"]["time"] 
                         self.humanData={"amg8833": amg8833Data, "time":timeData}
                     roadData = getData["data"]["roadData"]["img"]
@@ -405,18 +406,83 @@ class SocketServer(object):
                     self.__prevSaveTime = millis.Millis()
                     # 전송할 데이터 : 사람 img , 온도 img , 찍힌시간, 8*8온도 데이터
                     filePath = "D:/project2021/imgFileServer/"
-                    directoryName = str(self.humanData["time"])
-                    path = filePath+directoryName
-                    #디렉터리생성
-                    imgSave.createDirectory(directoryName, filePath)
-                    #이미지 저장
-                    imgPath = path+"/humanImg.jpg"
-                    cv2.imwrite(imgPath, img)
-                    amgPath = path+"/amg8833.jpg"
-                    imgSave.amg8833_IMG_Save(self.humanData["amg8833"], amgPath)
+                    shootingTime = str(self.humanData["time"])
                     
+                    #디렉터리생성
+                    directoryNameList = shootingTime.replace(' ', '/').split('/')
+                    
+                    imgSave.createDirectory(directoryNameList, filePath)
+                    
+                    path = filePath+directoryNameList[0]+"/"+directoryNameList[1]+"/"+directoryNameList[2]+"/"+directoryNameList[3]
+                    #이미지 저장
+                    imgPath1 = path+"/fullImg.jpg"
+                    cv2.imwrite(imgPath1, imgFrame)
+                    imgPath2 = path+"/humanImg.jpg"
+                    cv2.imwrite(imgPath2, img)
+                    amgPath = path+"/amg8833.jpg"
+                    amgData = self.humanData["amg8833"]
+                    
+                    h, w, c = imgFrame.shape
+                    wRatio48 = round(w/48,0)
+                    hRatio48 = round(h/48,0)
+                    amgRectPath = path+"/amg8833Rect.jpg"
+                    
+                    _amgLocationX1 = int(round((x-10)/hRatio48,0))
+                    _amgLocationY1 = int(round((y-10)/wRatio48,0))
+                    
+                    _amgLocationX2 = int(round((x2+10)/hRatio48,0))
+                    _amgLocationY2 = int(round((y2+10)/wRatio48,0))
+                    
+                    
+                    imgSave.amg8833_IMG_Save(amgData, amgPath, amgRectPath, _amgLocationX1, _amgLocationY1, _amgLocationX2, _amgLocationY2)                
+                    
+                    
+                    
+                    
+                    #온도 데이터
+                    wRatio8 = round(w/8,0)
+                    hRatio8 = round(h/8,0)
+                    
+                    amgLocationX1 = int(round((x-10)/hRatio8,0))
+                    amgLocationY1 = int(round((y-10)/wRatio8,0))
+                    
+                    amgLocationX2 = int(round((x2+10)/hRatio8,0))
+                    amgLocationY2 = int(round((y2+10)/wRatio8,0))
+                    
+                    _total = 0
+                    amgArray = np.array(amgData);
+                    amgArray = amgArray.reshape((8,8))
+                    
+                    for x in range(amgLocationX1, amgLocationX2):
+                        for y in range(amgLocationY1, amgLocationY2):
+                            _total += amgArray[x][y]
+                    
+                    _avr = round(_total/(len(range(amgLocationX1, amgLocationX2))*len(range(amgLocationY1, amgLocationY2))),1)
+                    print(_avr)
                     mysqlDB = DataBase.MysqlConnector()
-                    dbThread = Threading.Thread(targer=mysqlDB.insertData, args=(name,imgPath,amgPath,directoryName))
+                    warning = _avr > 28 if 0 else 1
+                    detectUserDict = {
+                            "temp" : _avr,
+                            "mask" : 0,
+                            "name" : name,
+                            "age" : "32",
+                            "gender" : 0,
+                            "shootingDate" : shootingTime,
+                            "checked" : 0,
+                            "warning" : warning
+                        }
+                    
+                    #mask값 gender값 age값 유동적 구하는 model 찾
+                    imgPathDict = {
+                            "dutseq" : 0,
+                            "original_imgpath" : imgPath1,
+                            "original_ir_imgpath" : amgPath,
+                            "originaldetail_imgpath" : imgPath2,
+                            "originaldetail_ir_imgpath" : amgRectPath
+                        }
+                    
+                    
+                    dbThread = Threading.Thread(target=mysqlDB.insertData, args=(detectUserDict , imgPathDict))
                     dbThread.start()
                     
                     
@@ -425,7 +491,6 @@ class SocketServer(object):
             self.__faceData = imgFrame
             return
         except Exception as e:
-            print("face err",e)
             self.__faceData = imgFrame
             return
                 
