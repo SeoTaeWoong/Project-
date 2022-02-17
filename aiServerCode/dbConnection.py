@@ -25,12 +25,12 @@ class MysqlConnector(object):
         try:
             conn = db.connect(host=self.__host, user=self.__username, passwd=self.__password, db=self.__database, port=self.__port, use_unicode=True, charset='utf8')
             curs = conn.cursor()
-            sql = "insert into detectUserTB (temp, mask, name, age, gender, shootingDate, checked, warning) values (%s, %d, %s, %s, %d, %s, %d, %d);"
+            sql = "insert into detectUserTB (temp, mask, name, age, gender, shootingDate, checked, warning) values (%s, %s, %s, %s, %s, %s, %s, %s);"
             val = (detectUserDict["temp"],detectUserDict["mask"],detectUserDict["name"],detectUserDict["age"],detectUserDict["gender"],detectUserDict["shootingDate"],detectUserDict["checked"],detectUserDict["warning"])
             curs.execute(sql, val)
             imgPathDict["dutseq"] = curs.lastrowid
-            sql = "insert into imgPathTB( dutseq , original_IMGPath, original_IR_IMGPath , originalDetail_IMGPath , originalDetail_IR_IMGPath) values (%d, %s, %s, %s, %s);"
-            val = (imgPathDict["dutseq"],imgPathDict["original_imgpath"],imgPathDict["original_ir_imgpath"],imgPathDict["originaldetail_imgpath"],imgPathDict["originaldetail_ir_imgpath"])
+            sql = "insert into imgPathTB( dutseq , original_IMGPath, original_IR_IMGPath , detail_IMGPath , detail_IR_IMGPath) values (%s, %s, %s, %s, %s);"
+            val = (imgPathDict["dutseq"],imgPathDict["original_imgpath"],imgPathDict["original_ir_imgpath"],imgPathDict["detail_imgpath"],imgPathDict["detail_ir_imgpath"])
             curs.execute(sql, val)
             conn.commit()
             curs.close()

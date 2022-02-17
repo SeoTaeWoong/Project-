@@ -18,19 +18,6 @@ class MysqlConnector(object):
             self.__conn = db.connect(host="192.168.137.1", user="admin", passwd="1q2w3e4r", db= "teamproject", port=3306, use_unicode=True, charset='utf8')
             cls._init = True
     
-    def insertData(self, name, imgPath, amgPath, shooting_time):
-        conn = db.connect(host=self.__host, user=self.__username, passwd=self.__password, db=self.__database, port=self.__port, use_unicode=True, charset='utf8')
-        #curs = conn.cursor(pymysql.cursors.DictCursor)
-        curs = conn.cursor()
-        sql = "insert into detectTB (name,human_path,amg8833_path,shooting_time) values (%s, %s, %s, %s)"
-        val = (name, imgPath, amgPath, shooting_time)
-        #sql = "select * from customer where category=%s and region=%s"
-        curs.execute(sql, val)
-        
-        
-        # Connection 닫기
-        conn.commit()
-        conn.close()
 
     def getPageData(self, page, num):
         try:
@@ -67,11 +54,9 @@ class MysqlConnector(object):
       
     def getDetectUser(self):
         try:
-            
-            #curs = conn.cursor(pymysql.cursors.DictCursor)
-            
+ 
             curs = self.__conn.cursor()
-            sql = "select * from detectUserTB order by seq desc"
+            sql = "select * from detectUserTB where warning = 1 and memberEmail is null  order by seq desc;"
             curs.execute(sql)
             tupleData = curs.fetchall()
             curs.close()
@@ -80,22 +65,109 @@ class MysqlConnector(object):
         except Exception as e:
             print("err1",e)
             
-    def getInfoData(self):
+    def getInfoData(self, seq):
         try:
             curs = self.__conn.cursor()
-            sql = "select * from detectUserTB order by seq desc"
-            curs.execute(sql)
+            sql = "update detectUserTB set checked = 1 where seq = %s";
+            curs.execute(sql, (seq))
+            self.__conn.commit()
+            
+            sql = "select d.seq, d.name,d.age, d.gender, d.temp, d.mask, p.original_imgpath, p.original_ir_imgpath, p.detail_imgpath, p.detail_ir_imgpath from detectUserTB as d join imgPathTB as p on d.seq = p.dutseq and d.seq = %s;"
+            
+            curs.execute(sql, (seq))
             tupleData = curs.fetchall()
             curs.close()
-
+            
             return tupleData
         except Exception as e:
             print("err1",e)
     
-    def getMaskPlotData(self):
+    def getMembersData(self):
+        try:
+            curs = self.__conn.cursor()
+            sql = "select * from memberTB"
+            
+            curs.execute(sql)
+            tupleData = curs.fetchall()
+            curs.close()
+            
+            return tupleData
+        except Exception as e:
+            print("err1",e)
+            
+    def getMemberListData(self):
+        curs = self.__conn.cursor()
+        sql = "select email from memberTB"
+        
+        curs.execute(sql)
+        tupleData = curs.fetchall()
+        curs.close()
+        
+        return tupleData
+            
+    
+    def getMemberInfoAllData(self, email, dayData):
+        
+        curs = self.__conn.cursor()
+        sql = 'select name,dateofbirth,age,gender,userimg from memberTB where email=%s;'
+        curs.execute(sql, email)
+        tupleData = curs.fetchall()
+        userData ={
+                "name":tupleData[0][0],
+                "birth":tupleData[0][1],
+                "age":tupleData[0][2],
+                "gender":tupleData[0][3],
+                "img":tupleData[0][4]
+            }
+        name=tupleData[0][0]
+        plotData={}
+        for key in dayData:
+            
+            sql = 'select count(d.temp) as temp, nvl(d2.mask,0) as mask from detectUserTB as d, (select count(mask) as mask from detectUserTB where shootingDate like %s and warning = 1 and name= %s and mask=1 ) as d2 where d.shootingDate like %s and d.warning=1 and d.name=%s and d.mask=0;'
+            val = (dayData[key], name, dayData[key], name)
+            curs.execute(sql, val)
+            tupleData = curs.fetchall()
+            print(tupleData)
+            plotData[key] = {"tempCnt":tupleData[0][0], "maskCnt":tupleData[0][1], "date": dayData[key].replace("%", '')}
+            
+        curs.close()
+        return userData,plotData
+    
+    def getMemberVerifyData(self, email, dayData):
+        curs = self.__conn.cursor()
+        plotData={}
+        for key in dayData:
+            sql = "select nvl(tempData.temp, 0) as temp, nvl(count(mask), 0) as mask from (select count(temp) as temp from detectUserTB as d join memberTB as m on d.memberEmail = m.email where d.shootingDate like %s and m.email=%s and mask = 0) as tempData, detectUserTB as d1 join memberTB m1 on d1.memberEmail = m1.email where d1.shootingDate like %s and m1.email=%s and mask = 1;"
+            val = (dayData[key], email, dayData[key], email)
+            curs.execute(sql, val)
+            tupleData = curs.fetchall()
+            plotData[key] = {"tempCnt":tupleData[0][0], "maskCnt":tupleData[0][1], "date": dayData[key].replace("%", '')}
+        curs.close()
+        
+        return plotData
+    
+    def warningDataUpdate(self, jsonData):
         try:
             
-            #curs = conn.cursor(pymysql.cursors.DictCursor)
+            curs = self.__conn.cursor()
+            sql = "update detectUserTB set name = %s, age= %s, gender = %s, memberEmail = %s where seq = %s;"
+            val = (jsonData["name"], jsonData["age"], jsonData["gender"], jsonData["Email"], jsonData["seq"]);
+            curs.execute(sql, val)
+            self.__conn.commit()
+            
+            sql = "insert into detectUserLogTB (dutseq, log) values (%s, %s);"
+            val = (jsonData["seq"], jsonData["log"]);
+            curs.execute(sql, val)
+            self.__conn.commit()
+            
+            curs.close()
+            
+        except Exception as e:
+            print("err2",e)
+        
+    
+    def getMaskPlotData(self):
+        try:
             curs = self.__conn.cursor()
             sql = "SELECT mask, COUNT(mask) FROM detectUserTB GROUP BY mask;"
             curs.execute(sql)
@@ -109,17 +181,135 @@ class MysqlConnector(object):
     def getToDayCountData(self, now):
         try:
             curs = self.__conn.cursor()
-            sql = "select count(mask) from detectUserTB where mask = 'false' and shootingDate like %s;"
-            curs.execute(sql, "%2020/03/21%")
+            sql = "select count(mask) from detectUserTB where mask =1 and shootingDate like %s;"
+            curs.execute(sql, now)
             tupleData = curs.fetchall()
             dictData = {}
             dictData["mask"] = tupleData[0][0]
             sql = "select count(shootingDate) from detectUserTB where shootingDate like %s;"
-            curs.execute(sql, "%2020/03/21%")
+            curs.execute(sql, now)
             curs.close()
             tupleData = curs.fetchall()
             dictData["tester"] = tupleData[0][0]
             return dictData
         except Exception as e:
             print("err3",e)
+    
+    def getLogData_all(self, jsonData):
+        curs = self.__conn.cursor()
+        if "mask" in jsonData:
+            sql = "select dut.seq from detectUserTB as dut join memberTB as m on dut.name = m.name where m.email = %s and dut.shootingDate like %s and dut.warning = '1' and dut.mask = %s;"
+            val = (jsonData['email'], jsonData['day'], jsonData["mask"])
+        elif "temp" in jsonData:
+            sql = "select dut.seq from detectUserTB as dut join memberTB as m on dut.name = m.name where m.email = %s and dut.shootingDate like %s and dut.warning = '1' and dut.temp > %s;"
+            val = (jsonData['email'], jsonData['day'], jsonData["temp"])
         
+        curs.execute(sql, val)
+        tupleData = curs.fetchall()
+        
+        dictData = {"seq":[]}
+        for index in range(len(tupleData)):
+                dictData["seq"].append(tupleData[index][0])
+            
+
+        sql = "select logTB.name, logTB.temp, logTB.mask, logTB.age, logTB.gender, logTB.shootingDate, nvl(logTB.log, 'No-Log') as log, imgTB.original_IMGPath, imgTB.detail_IR_IMGPath, imgTB.original_IR_IMGPath, imgTB.detail_IMGPath FROM (select dut.seq, dut.name, dut.temp, dut.mask, dut.age, dut.gender, dut.shootingDate, dult.log from detectUserTB as dut left outer join detectUserLogTB as dult on dut.seq = dult.seq where dut.seq = %s) as logTB join imgpathTB as imgTB on imgTB.dutseq = logTB.seq;"
+        val = (dictData["seq"][0])
+        curs.execute(sql, val)
+        tupleData = curs.fetchall()
+        dictData["name"] = tupleData[0][0]
+        dictData["temp"] = tupleData[0][1]
+        if(tupleData[0][2] == 0):
+            dictData["mask"] = "OnMask"
+        else:
+            dictData["mask"] = "NoMask"    
+        
+        dictData["age"] = tupleData[0][3]
+        if(tupleData[0][4] == 0):
+            dictData["gender"] = "Male"
+        else:
+            dictData["gender"] = "FeMale"    
+        
+        dictData["date"] = tupleData[0][5]
+        dictData["log"] = tupleData[0][6]
+        dictData["img1"] = tupleData[0][7].replace("D:/project2021/imgFileServer/", "mntImg/")
+        dictData["img2"] = tupleData[0][8].replace("D:/project2021/imgFileServer/", "mntImg/")
+        dictData["img3"] = tupleData[0][9].replace("D:/project2021/imgFileServer/", "mntImg/")
+        dictData["img4"] = tupleData[0][10].replace("D:/project2021/imgFileServer/", "mntImg/")
+        curs.close()
+        return dictData
+    
+    def getLogData_verify(self, jsonData):
+        curs = self.__conn.cursor()
+        if "mask" in jsonData:
+            sql = "select seq from detectUserTB where memberEmail = %s and shootingDate like %s and mask = %s;"
+            val = (jsonData['email'], jsonData['day'], jsonData["mask"])
+        elif "temp" in jsonData:
+            sql = "select seq from detectUserTB where memberEmail = %s and shootingDate like %s and temp > %s;"
+            val = (jsonData['email'], jsonData['day'], jsonData["temp"])
+        
+        curs.execute(sql, val)
+        
+        dictData = {"seq":[]}
+        tupleData = curs.fetchall()
+        for index in range(len(tupleData)):
+                dictData["seq"].append(tupleData[index][0])
+                
+
+        sql = "select logTB.name, logTB.temp, logTB.mask, logTB.age, logTB.gender, logTB.shootingDate, nvl(logTB.log, 'No-Log') as log, imgTB.original_IMGPath, imgTB.detail_IR_IMGPath, imgTB.original_IR_IMGPath, imgTB.detail_IMGPath FROM (select dut.seq, dut.name, dut.temp, dut.mask, dut.age, dut.gender, dut.shootingDate, dult.log from detectUserTB as dut left outer join detectUserLogTB as dult on dut.seq = dult.seq where dut.seq = %s) as logTB join imgpathTB as imgTB on imgTB.dutseq = logTB.seq;"
+        val = (dictData["seq"][0])
+        curs.execute(sql, val)
+        tupleData = curs.fetchall()
+        dictData["name"] = tupleData[0][0]
+        dictData["temp"] = tupleData[0][1]
+        if(tupleData[0][2] == 0):
+            dictData["mask"] = "OnMask"
+        else:
+            dictData["mask"] = "NoMask"    
+        
+        dictData["age"] = tupleData[0][3]
+        if(tupleData[0][4] == 0):
+            dictData["gender"] = "Male"
+        else:
+            dictData["gender"] = "FeMale"    
+        
+        dictData["date"] = tupleData[0][5]
+        dictData["log"] = tupleData[0][6]
+        dictData["img1"] = tupleData[0][7].replace("D:/project2021/imgFileServer/", "mntImg/")
+        dictData["img2"] = tupleData[0][8].replace("D:/project2021/imgFileServer/", "mntImg/")
+        dictData["img3"] = tupleData[0][9].replace("D:/project2021/imgFileServer/", "mntImg/")
+        dictData["img4"] = tupleData[0][10].replace("D:/project2021/imgFileServer/", "mntImg/")
+        curs.close()
+        return dictData
+    
+    
+    def getSelectLogData(self, seq):
+        curs = self.__conn.cursor()
+        dictData = {}
+        sql = "select logTB.name, logTB.temp, logTB.mask, logTB.age, logTB.gender, logTB.shootingDate, nvl(logTB.log, 'No-Log') as log, imgTB.original_IMGPath, imgTB.detail_IR_IMGPath, imgTB.original_IR_IMGPath, imgTB.detail_IMGPath FROM (select dut.seq, dut.name, dut.temp, dut.mask, dut.age, dut.gender, dut.shootingDate, dult.log from detectUserTB as dut left outer join detectUserLogTB as dult on dut.seq = dult.seq where dut.seq = %s) as logTB join imgpathTB as imgTB on imgTB.dutseq = logTB.seq;"
+        curs.execute(sql, seq)
+        tupleData = curs.fetchall()
+        print(tupleData)
+        
+        dictData["name"] = tupleData[0][0]
+        dictData["temp"] = tupleData[0][1]
+        if(tupleData[0][2] == 0):
+            dictData["mask"] = "OnMask"
+        else:
+            dictData["mask"] = "NoMask"    
+        
+        dictData["age"] = tupleData[0][3]
+        if(tupleData[0][4] == 0):
+            dictData["gender"] = "Male"
+        elif(tupleData[0][4] == 1):
+            dictData["gender"] = "FeMale"    
+        
+        dictData["date"] = tupleData[0][5]
+        dictData["log"] = tupleData[0][6]
+        dictData["img1"] = tupleData[0][7].replace("D:/project2021/imgFileServer/", "mntImg/")
+        dictData["img2"] = tupleData[0][8].replace("D:/project2021/imgFileServer/", "mntImg/")
+        dictData["img3"] = tupleData[0][9].replace("D:/project2021/imgFileServer/", "mntImg/")
+        dictData["img4"] = tupleData[0][10].replace("D:/project2021/imgFileServer/", "mntImg/")
+        
+        
+        curs.close()
+        return dictData

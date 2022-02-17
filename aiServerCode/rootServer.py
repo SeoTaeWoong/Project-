@@ -10,10 +10,11 @@ import cvlib as cv
 import numpy as np
 import edge as Edge
 import dbConnection as DataBase
+import amg8833Edge
 import imgSave
 import os
 from tensorflow.keras.models import load_model
-
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
 
 class SocketServer(object):
@@ -38,7 +39,7 @@ class SocketServer(object):
             cls._instance = super().__new__(cls)
         return cls._instance
     
-    def __init__(self):
+    def __init__(self, fileDictQueue):
         cls = type(self)
         if not hasattr(cls, "_init"):
             print("__init__\n")
@@ -46,8 +47,37 @@ class SocketServer(object):
             self.__socket.bind(("",8485))
             self.__socket.listen(5)
             self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
-            self.model = load_model("model_rgb.h5")
+            self.memberModel = load_model("model_rgb.h5")
+            self.maskModel = load_model('mask_detector.model')
+            self.testModel()
+            self.fileDictQueue = fileDictQueue;
             cls._init = True
+    
+    
+    def testModel(self):
+
+        # # 사진 속에서 얼굴을 탐지하는 face_detector 모델
+        # # 얼굴인식 후 마스크 착용 여부를 확인하는 모델
+        
+
+        img = cv2.imread("D:/project2021/Members/TestDataSet/TestDataSet/SeoTaeWoong/SeoTaeWoong (1).jpg");
+
+        face_input = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        face_input = cv2.resize(face_input, dsize=(224, 224))
+        face_input = preprocess_input(face_input)
+        face_input = np.expand_dims(face_input, axis=0)
+
+        (mask, nomask) = self.maskModel.predict(face_input)[0]
+        
+        img_size = (128,128)
+        frame_resized = cv2.resize(img, img_size, interpolation=cv2.INTER_AREA) 
+        frame_normalized = (frame_resized.astype(np.float32) / 127.0) - 1
+
+        frame_reshaped = frame_normalized.reshape((1, 128, 128,3))
+        preprocessed = frame_reshaped
+        prediction = self.memberModel.predict(preprocessed)
+        
+        print("complate")
     
     def getEdge(self, cli_socket, addr, roadFrame):
         try:
@@ -377,6 +407,7 @@ class SocketServer(object):
     def faceEdge(self, imgFrame):
         try:
             faces, confidences = cv.detect_face(imgFrame)
+            
             for (x, y, x2, y2), conf in zip(faces, confidences):
                 
                 img_size = (128,128)
@@ -390,16 +421,33 @@ class SocketServer(object):
     
                 frame_reshaped = frame_normalized.reshape((1, 128, 128,3))
                 preprocessed = frame_reshaped
-                prediction = self.model.predict(preprocessed)
+                prediction = self.memberModel.predict(preprocessed)
+                
                 pred = np.argmax(np.squeeze(prediction))
-                name = "unknown"
-                if(prediction[0][pred] > 0.8):
+                name = "Unknown"
+                if(prediction[0][pred] > 0.9):
                     if(pred == 0):
                         name = "JangYungDae"
                     elif(pred == 1):
                         name = "KimSungTan"
                     elif(pred == 2):
                         name = "SeoTaeWoong"
+                        
+                maskStatus = 0        
+                age = "Unknown"
+                gender = 2
+                face_input = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                face_input = cv2.resize(face_input, dsize=(224, 224))
+                face_input = preprocess_input(face_input)
+                face_input = np.expand_dims(face_input, axis=0)
+                (mask, nomask) = self.maskModel.predict(face_input)[0]
+                if mask > nomask:
+                    maskStatus = 0
+                else:
+                    maskStatus = 1
+                    gender, age = self.getGender_Age(img)
+                    
+                
                 
                 currentSaveTime = millis.Millis() - self.__prevSaveTime
                 if currentSaveTime > 2000 :
@@ -421,37 +469,39 @@ class SocketServer(object):
                     cv2.imwrite(imgPath2, img)
                     amgPath = path+"/amg8833.jpg"
                     amgData = self.humanData["amg8833"]
+                    datashape = np.reshape(amgData,(8,8))
+                    dataflip = np.flip(datashape, axis=1)
                     
                     h, w, c = imgFrame.shape
-                    wRatio48 = round(w/48,0)
-                    hRatio48 = round(h/48,0)
+                    wRatio48 = round(w/48.0)
+                    hRatio48 = round(h/48.0)
                     amgRectPath = path+"/amg8833Rect.jpg"
                     
-                    _amgLocationX1 = int(round((x-10)/hRatio48,0))
-                    _amgLocationY1 = int(round((y-10)/wRatio48,0))
+                    _amgLocationX1 = int(round((x-10)/wRatio48,0))
+                    _amgLocationY1 = int(round((y-10)/hRatio48,0))
                     
-                    _amgLocationX2 = int(round((x2+10)/hRatio48,0))
-                    _amgLocationY2 = int(round((y2+10)/wRatio48,0))
-                    
-                    
-                    imgSave.amg8833_IMG_Save(amgData, amgPath, amgRectPath, _amgLocationX1, _amgLocationY1, _amgLocationX2, _amgLocationY2)                
-                    
+                    _amgLocationX2 = int(round((x2+10)/wRatio48,0))
+                    _amgLocationY2 = int(round((y2+10)/hRatio48,0))
+
+                    imgSave.amg8833_IMG_Save(dataflip, amgPath, amgRectPath, _amgLocationX1, _amgLocationY1, _amgLocationX2, _amgLocationY2)                
+                    fileDict={"imgPath":imgPath1, "amgPath":amgRectPath}
+                    self.fileDictQueue.put(fileDict)
                     
                     
                     
                     #온도 데이터
-                    wRatio8 = round(w/8,0)
-                    hRatio8 = round(h/8,0)
+                    wRatio8 = round(w/8.0)
+                    hRatio8 = round(h/8.0)
                     
-                    amgLocationX1 = int(round((x-10)/hRatio8,0))
-                    amgLocationY1 = int(round((y-10)/wRatio8,0))
+                    amgLocationX1 = int(round((x-10)/wRatio8,0))
+                    amgLocationY1 = int(round((y-10)/hRatio8,0))
                     
-                    amgLocationX2 = int(round((x2+10)/hRatio8,0))
-                    amgLocationY2 = int(round((y2+10)/wRatio8,0))
+                    amgLocationX2 = int(round((x2+10)/wRatio8,0))
+                    amgLocationY2 = int(round((y2+10)/hRatio8,0))
                     
                     _total = 0
-                    amgArray = np.array(amgData);
-                    amgArray = amgArray.reshape((8,8))
+                    
+                    amgArray = dataflip
                     
                     for x in range(amgLocationX1, amgLocationX2):
                         for y in range(amgLocationY1, amgLocationY2):
@@ -460,13 +510,15 @@ class SocketServer(object):
                     _avr = round(_total/(len(range(amgLocationX1, amgLocationX2))*len(range(amgLocationY1, amgLocationY2))),1)
                     print(_avr)
                     mysqlDB = DataBase.MysqlConnector()
-                    warning = _avr > 28 if 0 else 1
+                    warning = 0;
+                    if (_avr > 28) or (maskStatus == 1):
+                        warning = 1
                     detectUserDict = {
                             "temp" : _avr,
-                            "mask" : 0,
+                            "mask" : maskStatus,
                             "name" : name,
-                            "age" : "32",
-                            "gender" : 0,
+                            "age" : age,
+                            "gender" : gender,
                             "shootingDate" : shootingTime,
                             "checked" : 0,
                             "warning" : warning
@@ -477,8 +529,8 @@ class SocketServer(object):
                             "dutseq" : 0,
                             "original_imgpath" : imgPath1,
                             "original_ir_imgpath" : amgPath,
-                            "originaldetail_imgpath" : imgPath2,
-                            "originaldetail_ir_imgpath" : amgRectPath
+                            "detail_imgpath" : imgPath2,
+                            "detail_ir_imgpath" : amgRectPath
                         }
                     
                     
@@ -486,13 +538,51 @@ class SocketServer(object):
                     dbThread.start()
                     
                     
-                cv2.rectangle(imgFrame, (x-20, y-20), (x2+20, y2+20), (0, 255, 0), 2)
-                cv2.putText(imgFrame, str(name), (x+30,y-40), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0), 2)
+                
+                
+                if maskStatus == 0:
+                    textColor = (0,255,0)
+                else:
+                    textColor = (0, 0, 255)
+                cv2.rectangle(imgFrame, (x-20, y-20), (x2+20, y2+20), textColor, 2)
+                cv2.putText(imgFrame, str(name), (x+30,y-40), cv2.FONT_HERSHEY_PLAIN, 1, textColor, 2)
             self.__faceData = imgFrame
             return
         except Exception as e:
             self.__faceData = imgFrame
+            print(e)
             return
+    
+    def getGender_Age(self, img):
+        MODEL_MEAN_VALUES = (78.4263377603, 87.7689143744, 114.895847746)
+        age_net = cv2.dnn.readNetFromCaffe(
+        	'deploy_age.prototxt',
+        	'age_net.caffemodel')
+
+        # 성별 예측 모델 불러오기
+        gender_net = cv2.dnn.readNetFromCaffe(
+        	'deploy_gender.prototxt',
+        	'gender_net.caffemodel')
+
+        # 연령 클래스
+        age_list = ['(0 ~ 2)','(4 ~ 6)','(8 ~ 12)','(15 ~ 20)',
+                    '(25 ~ 32)','(38 ~ 43)','(48 ~ 53)','(60 ~ 100)']
+        # 성별 클래스
+        gender_list = ['0', '1']
+        blob = cv2.dnn.blobFromImage(img, 1, (227, 227), MODEL_MEAN_VALUES, swapRB=False)
+            
+        # gender detection
+        gender_net.setInput(blob)
+        gender_preds = gender_net.forward()
+        # 가장 높은 Score값을 선정
+        gender = gender_preds.argmax()
+        # Predict age
+        age_net.setInput(blob)
+        age_preds = age_net.forward()
+        # 가장 높은 Score값을 선정
+        age = age_preds.argmax()
+
+        return gender_list[gender], age_list[age]
                 
     def serverON(self):
         while True:
@@ -513,8 +603,12 @@ class SocketServer(object):
 
 
 if __name__ == "__main__":
+    fileDictQueue = Queue()
+    amgEdge = amg8833Edge.amg8833()
+    amgEdgeProcess = Process(target=amgEdge.createAmg8833Edge, args=(fileDictQueue,))
+    amgEdgeProcess.daemon = True
+    amgEdgeProcess.start()
     
-    a = SocketServer()
+    a = SocketServer(fileDictQueue)
     a.serverON()
     
-

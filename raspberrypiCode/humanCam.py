@@ -57,7 +57,6 @@ class camera(object):
             if status:
                 continue
             else:
-            
                 amgDataQue.put(data)
                 return 
 
@@ -115,18 +114,19 @@ class camera(object):
                             imgTime = "%04d/%02d/%02d %02d:%02d:%02d" % (now.tm_year, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec)
                             
                             amg8833Thread.join()
-                            
+                            amgData = amgDataQue.get();
+                            print(amgData)
                             if hCamQueue.qsize() > 20:
                                 hCamQueue.get()
                                 amg8833Queue.get()
                                 hCamTimeQueue.get()
                                 
                                 hCamQueue.put(base64Data)
-                                amg8833Queue.put(amgDataQue.get())
+                                amg8833Queue.put(amgData)
                                 hCamTimeQueue.put(imgTime)
                             else:
                                 hCamQueue.put(base64Data)
-                                amg8833Queue.put(amgDataQue.get())
+                                amg8833Queue.put(amgData)
                                 hCamTimeQueue.put(imgTime)
                                 
                             
