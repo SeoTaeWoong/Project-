@@ -115,7 +115,7 @@ class camera(object):
                             
                             amg8833Thread.join()
                             amgData = amgDataQue.get();
-                            print(amgData)
+                            
                             if hCamQueue.qsize() > 20:
                                 hCamQueue.get()
                                 amg8833Queue.get()

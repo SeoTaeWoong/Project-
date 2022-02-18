@@ -36,6 +36,7 @@ class MysqlConnector(object):
             curs.close()
             # Connection 닫기
             conn.close()
+            print("저장 완료")
         except Exception as e :
             print(e)
 

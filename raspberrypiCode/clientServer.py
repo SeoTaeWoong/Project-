@@ -171,10 +171,7 @@ class SocketClient(object):
         comparativeData = self.comparative
         prev_time = time.time()
         fps = 10
-        
-        
-        
-        
+        print("333333333333333333333333333333333333")
         while True:
             
             cam = cv2.VideoCapture(2)
@@ -222,7 +219,6 @@ class SocketClient(object):
                         self.sendMSG(ser_socket, message)
                                
                 except Exception as e:
-                    pass
                     print("err1:",e)
                     
                 
@@ -244,12 +240,15 @@ class SocketClient(object):
         print("1Round")
         rsCheck = True
         while rsCheck:
+            print("1-2Round")
             message = self.__messageForm
             message["destination"] = self.serverIP
             message["type"] = "request/RobotSettings"
             message["data"] = robotData
             self.sendMSG(ser_socket, message)
+            print("1-3Round")
             while rsCheck:
+                print("1-4Round")
                 getData = self.recvMSG(ser_socket)
                 if(getData["type"] == "response/RobotSettings" and getData["data"] == "ok"):
                     print("ok")
@@ -316,7 +315,7 @@ while True:
         humanCam = HumanCam.camera()
         hCam_MultiProcess = Process(target = humanCam.frameUpdate, args=(hCamQueue,amg8833Queue,hCamTimeQueue))
 
-        joycon_MultiProcess.start()
+        #joycon_MultiProcess.start()
         hCam_MultiProcess.start()
         rasp_atmega_MultiProcess.start()
 

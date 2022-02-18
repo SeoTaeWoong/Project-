@@ -994,12 +994,75 @@ window.onload = function(){
     })
     
     
-    var socket = io.connect('localhost:8484');
     
-    socket.on('my response', function(message){
-        console.log(message)
-    })
+    let _chartTable = document.querySelector(".chartTable")
+    playAlert = setInterval(function() {
+        
+        let _seq = _chartTable.firstChild.querySelector(".seqFont")
+        sendData = {"seq":_seq.textContent}
+        jsonData = JSON.stringify(sendData)
+        xhr = new XMLHttpRequest();
+        xhr.open("POST", "/getLiveData", false);
+        xhr.onreadystatechange = function(){
+            if(xhr.readyState ==4){
+                if(xhr.status == 200){
+                    
+                    data = JSON.parse(this.responseText)
+                    console.log(data)
+                    checkNumResult.innerHTML = data["tester"]
+                    checkNumEffect.innerHTML = data["tester"]
+                    noMaskNumResult.innerHTML = data["mask"]        
+                    noMaskNumEffect.innerHTML = data["mask"]
+                    delete data["mask"]
+                    delete data["tester"]
+                    
+                    if(data["0"] != undefined){
+                        for(key in data){
+                            
+                            value = data[key]
+                            let checked = ""
+                            let _warning = ""
+                            let maskLine = '</li><li style="font-weight:bold">'+value["mask"]
+                            let tempLine = '</div></li><li style="font-weight:bold">'+value["temp"]
+                            
+                            if(value["checked"] === 0){
+                                checked = "newIcon"
+                            }
+                            if(value["warning"] === 1){
+                                _warning = "warningIcon"
+                                
+                                if(value["mask"] === "No")
+                                    maskLine = '</li><li style="color:red; font-weight:bold">'+value["mask"]
+                                
+                                if(value["temp"] > 28)
+                                    tempLine = '</li><li style="color:red; font-weight:bold;">'+value["temp"]
+                            }
+                            
+                            
+                            
+                            htmlText='<ul class="items item'+value["seq"]+'"> <li><div class='+checked+
+                                '></div><div class='+_warning+
+                                '></div><div class="seqFont">'+value["seq"]+
+                                '</div></li><li>'+value["name"]+
+                                tempLine+maskLine+
+                                '</li><li>'+value["date"]+
+                                '</li><li><div class="infoBtn" data-seq='+value["seq"]+
+                                '>▶</div></li></ul>'
+                            _chartTable.insertAdjacentHTML("afterbegin", htmlText);
+                        }
+                    }
+                }else{
+                    alert("요청 실패: "+xhr.status);
+                }
+            }
+        }
+        
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(jsonData)
+    }, 5000);
     
+
+    playAlert;
     
     
 }

@@ -1,6 +1,7 @@
 from flask import Flask, render_template, Response, request
 from flask_socketio import SocketIO
 from multiprocessing import Process, Queue
+import threading as Threading
 import socketClient as SocketCli
 import dbConnection as Mysql
 import datetime
@@ -311,23 +312,38 @@ def getSelectLogData():
     logData = mysqlDB.getSelectLogData(seq)
     return json.dumps(logData)
 
-
-
-def liveData_Cli_Send():
-    socketio.emit('my response', msg)
-
-
-
+@app.route('/getLiveData', methods=['POST'])
+def getLiveData():
+    jsonData = request.get_json()
+    seq = jsonData["seq"]
+    mysqlDB = Mysql.MysqlConnector()
+    now = "{:%%%Y/%m/%d%%}".format(datetime.datetime.now())
+    tupleData = mysqlDB.getLiveData(seq);
+    dictData = mysqlDB.getToDayCountData(now);
+    for index in range(len(tupleData)):
+        dictData[index] = {"seq": tupleData[index][0]}
+        dictData[index]["temp"] = tupleData[index][1]
+        dictData[index]["mask"] = tupleData[index][2]
+        dictData[index]["name"] = tupleData[index][3]
+        dictData[index]["date"] = tupleData[index][4]
+        dictData[index]["checked"] = tupleData[index][5]
+        dictData[index]["warning"] = tupleData[index][6]
+        
+        
+    
+    return json.dumps(dictData)
 
 if __name__ == '__main__':
     imgQueue1 = Queue()
     imgQueue2 = Queue()
     robotDataQueue = Queue()
     setDataQueue = Queue()
+    warningQueue = Queue()
     
-    #sock = SocketCli.SocketClient()
-    #socket_process = Process(target=sock.clientON, args=(imgQueue1, imgQueue2, robotDataQueue, setDataQueue))
-    #socket_process.start()
+    sock = SocketCli.SocketClient()
+    socket_process = Process(target=sock.clientON, args=(imgQueue1, imgQueue2, robotDataQueue, setDataQueue, warningQueue))
+    socket_process.start()
+
 
     socketio.run(app, host="0.0.0.0", port=8484)
     

@@ -122,20 +122,24 @@ class SocketClient(object):
                 elif(getData["type"] == "request/RealTimeStatus" and getData["origin"] == "aiServer"):
                     roadCam = self.base64TransformByte(getData["data"]["roadCam"])
                     humanCam = self.base64TransformByte(getData["data"]["humanCam"])
-                    
+                    warning = getData["data"]["warning"]
                     if self.imgQue1.qsize() >10:
                         self.imgQue1.get()
                         self.imgQue1.put(roadCam)
-                        
                     else :
                         self.imgQue1.put(roadCam)
 
                     if self.imgQue2.qsize() >10:
                         self.imgQue2.get()
                         self.imgQue2.put(humanCam)
-                        
                     else :
                         self.imgQue2.put(humanCam)
+                        
+                    if self.warningQue.qsize() >10:
+                        self.warningQue.get()
+                        self.warningQue.put(warning)
+                    else :
+                        self.warningQue.put(warning)
                     
                 elif(getData["type"] == "response/BluetoothConnection" and getData["origin"] == "aiServer"):
                     print(getData)
@@ -163,9 +167,10 @@ class SocketClient(object):
         self.recvThread(ser_socket)
         
                 
-    def clientON(self,imgQueue1, imgQueue2, robotDataQueue, setDataQueue):
+    def clientON(self,imgQueue1, imgQueue2, robotDataQueue, setDataQueue, warningQue):
         self.imgQue1 = imgQueue1
         self.imgQue2 = imgQueue2
+        self.warningQue = warningQue
         self.robotDataQue = robotDataQueue
         self.setDataQueue = setDataQueue
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:

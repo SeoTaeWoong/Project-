@@ -32,6 +32,7 @@ class SocketServer(object):
     __roadData = ""
     __faceData = ""
     __prevSaveTime = 0
+    __warning = 0;
 
     def __new__(cls, *args, **kwargs):
         if not hasattr(cls, "_instance"):
@@ -289,8 +290,9 @@ class SocketServer(object):
         
         while True:
             getData = self.recvMSG(cli_socket, addr)
+            
             if(getData and getData["type"] == "request/RobotSettings" and getData["origin"] == "rasp"):
-                
+                print("작동")    
                 message = self.__messageForm
                 message["destination"] = addr[0]
                 message["type"] = "response/RobotSettings"
@@ -331,9 +333,11 @@ class SocketServer(object):
                     humanCam = cv2.imdecode(humanCamData, cv2.IMREAD_COLOR)
                     
                     roadThread = Threading.Thread(target=self.getEdge, args=(cli_socket, addr, roadCam))
+                    roadThread.daemon=True
                     roadThread.start()
 
                     faceThread = Threading.Thread(target=self.faceEdge, args=(humanCam,))                    
+                    faceThread.daemon = True
                     faceThread.start()
                     
                     
@@ -357,7 +361,7 @@ class SocketServer(object):
                        
                             
                     if self.webSocket != None:
-                        print("입장")
+                        
                         # result, roadCam = cv2.imencode('.jpg', roadEdgeDatas, self.encode_param)
                         # raodCamData = np.array(roadCam)
                         # roadCamByteData = raodCamData.tobytes()
@@ -368,16 +372,15 @@ class SocketServer(object):
                         humanCamByteData = humanCamData.tobytes()
                         humanCamBase64Data = self.byteTransformBase64(humanCamByteData)
                         
-                        data = {"roadCam": roadData ,"humanCam": humanCamBase64Data}
+                        data = {"roadCam": roadData ,"humanCam": humanCamBase64Data,"warning": self.__warning}
                         message = self.__messageForm
                         message["destination"] = "web"
                         message["type"] = "request/RealTimeStatus"
                         message["data"] = data
                         self.sendMSG(self.webSocket,message)
-                        print("전송 완료")
                         
+                        self.__warning = 0;
                 except Exception as e:
-                    print(e)
                     pass
                 #여기서 웹으로 데이터 전송 코드 작성하기
                 #
@@ -472,18 +475,20 @@ class SocketServer(object):
                     datashape = np.reshape(amgData,(8,8))
                     dataflip = np.flip(datashape, axis=1)
                     
+                    print("1")
                     h, w, c = imgFrame.shape
                     wRatio48 = round(w/48.0)
                     hRatio48 = round(h/48.0)
                     amgRectPath = path+"/amg8833Rect.jpg"
-                    
+                    print("2")
                     _amgLocationX1 = int(round((x-10)/wRatio48,0))
                     _amgLocationY1 = int(round((y-10)/hRatio48,0))
                     
                     _amgLocationX2 = int(round((x2+10)/wRatio48,0))
                     _amgLocationY2 = int(round((y2+10)/hRatio48,0))
-
+                    print("3")
                     imgSave.amg8833_IMG_Save(dataflip, amgPath, amgRectPath, _amgLocationX1, _amgLocationY1, _amgLocationX2, _amgLocationY2)                
+                    print("4")
                     fileDict={"imgPath":imgPath1, "amgPath":amgRectPath}
                     self.fileDictQueue.put(fileDict)
                     
@@ -513,6 +518,7 @@ class SocketServer(object):
                     warning = 0;
                     if (_avr > 28) or (maskStatus == 1):
                         warning = 1
+                    self.__warning = warning
                     detectUserDict = {
                             "temp" : _avr,
                             "mask" : maskStatus,
@@ -531,10 +537,11 @@ class SocketServer(object):
                             "original_ir_imgpath" : amgPath,
                             "detail_imgpath" : imgPath2,
                             "detail_ir_imgpath" : amgRectPath
-                        }
+                            }
                     
                     
                     dbThread = Threading.Thread(target=mysqlDB.insertData, args=(detectUserDict , imgPathDict))
+                    dbThread.daemon = True
                     dbThread.start()
                     
                     
@@ -546,9 +553,15 @@ class SocketServer(object):
                     textColor = (0, 0, 255)
                 cv2.rectangle(imgFrame, (x-20, y-20), (x2+20, y2+20), textColor, 2)
                 cv2.putText(imgFrame, str(name), (x+30,y-40), cv2.FONT_HERSHEY_PLAIN, 1, textColor, 2)
+                
+                if "dbThread" in locals():
+                    dbThread.join()
+                
             self.__faceData = imgFrame
             return
         except Exception as e:
+            if "dbThread" in locals():
+                dbThread.join()
             self.__faceData = imgFrame
             print(e)
             return
@@ -594,6 +607,7 @@ class SocketServer(object):
                 self.__socketList += [{"cli_sock":cli_socket,"addr":addr[0],"port":addr[1],"hostName":"","connection":"off"}]
                 print("연결!!!!!!!!!!!!!!")
                 tData = Threading.Thread(target=self.transferData, args=(cli_socket, addr))
+                tData.daemon = True
                 tData.start()
             except KeyboardInterrupt:
                 self.__socket.close()

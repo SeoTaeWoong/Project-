@@ -13,17 +13,20 @@ class MysqlConnector(object):
         cls = type(self)
         if not hasattr(cls, "_init"):
             print("__init__\n")
-            #self.__host = "121.139.165.163"
-            #self.__port = 8486
-            self.__conn = db.connect(host="192.168.137.1", user="admin", passwd="1q2w3e4r", db= "teamproject", port=3306, use_unicode=True, charset='utf8')
+            self.__host = "121.139.165.163"
+            self.__port = 8486
+            self.__user = "admin"
+            self.__passwd = "1q2w3e4r"
+            self.__db = "teamproject"
+            
+            #self.__conn = db.connect(host="192.168.137.1", user="admin", passwd="1q2w3e4r", db= "teamproject", port=3306, use_unicode=True, charset='utf8')
             cls._init = True
     
 
     def getPageData(self, page, num):
         try:
-            
-            #curs = conn.cursor(pymysql.cursors.DictCursor)
-            curs = self.__conn.cursor()
+            conn = db.connect(host=self.__host, user=self.__user, passwd=self.__passwd, db= self.__db, port=self.__port, use_unicode=True, charset='utf8')
+            curs = conn.cursor()
             sql = "select count(*) from detectTB"
             curs.execute(sql)
             total = curs.fetchall()
@@ -47,7 +50,7 @@ class MysqlConnector(object):
                 listData[index][5] = listData[index][5].replace("D:/project2021/imgFileServer/","mntimg/")
                 listData[index] = tuple(listData[index])
             tupleData = tuple(listData)
-            
+            conn.close()
             return tupleData, paging
         except Exception as e:
             print(e)
@@ -55,19 +58,21 @@ class MysqlConnector(object):
     def getDetectUser(self):
         try:
  
-            curs = self.__conn.cursor()
+            conn = db.connect(host=self.__host, user=self.__user, passwd=self.__passwd, db= self.__db, port=self.__port, use_unicode=True, charset='utf8')
+            curs = conn.cursor()
             sql = "select * from detectUserTB where warning = 1 and memberEmail is null  order by seq desc;"
             curs.execute(sql)
             tupleData = curs.fetchall()
             curs.close()
-
+            conn.close()
             return tupleData
         except Exception as e:
             print("err1",e)
             
     def getInfoData(self, seq):
         try:
-            curs = self.__conn.cursor()
+            conn = db.connect(host=self.__host, user=self.__user, passwd=self.__passwd, db= self.__db, port=self.__port, use_unicode=True, charset='utf8')
+            curs = conn.cursor()
             sql = "update detectUserTB set checked = 1 where seq = %s";
             curs.execute(sql, (seq))
             self.__conn.commit()
@@ -77,38 +82,41 @@ class MysqlConnector(object):
             curs.execute(sql, (seq))
             tupleData = curs.fetchall()
             curs.close()
-            
+            conn.close()
             return tupleData
         except Exception as e:
             print("err1",e)
     
     def getMembersData(self):
         try:
-            curs = self.__conn.cursor()
+            conn = db.connect(host=self.__host, user=self.__user, passwd=self.__passwd, db= self.__db, port=self.__port, use_unicode=True, charset='utf8')
+            curs = conn.cursor()
             sql = "select * from memberTB"
             
             curs.execute(sql)
             tupleData = curs.fetchall()
             curs.close()
-            
+            conn.close()
             return tupleData
         except Exception as e:
             print("err1",e)
             
     def getMemberListData(self):
-        curs = self.__conn.cursor()
+        conn = db.connect(host=self.__host, user=self.__user, passwd=self.__passwd, db= self.__db, port=self.__port, use_unicode=True, charset='utf8')
+        curs = conn.cursor()
         sql = "select email from memberTB"
         
         curs.execute(sql)
         tupleData = curs.fetchall()
         curs.close()
-        
+        conn.close()
         return tupleData
             
     
     def getMemberInfoAllData(self, email, dayData):
         
-        curs = self.__conn.cursor()
+        conn = db.connect(host=self.__host, user=self.__user, passwd=self.__passwd, db= self.__db, port=self.__port, use_unicode=True, charset='utf8')
+        curs = conn.cursor()
         sql = 'select name,dateofbirth,age,gender,userimg from memberTB where email=%s;'
         curs.execute(sql, email)
         tupleData = curs.fetchall()
@@ -130,11 +138,12 @@ class MysqlConnector(object):
             print(tupleData)
             plotData[key] = {"tempCnt":tupleData[0][0], "maskCnt":tupleData[0][1], "date": dayData[key].replace("%", '')}
             
-        curs.close()
+        conn.close()
         return userData,plotData
     
     def getMemberVerifyData(self, email, dayData):
-        curs = self.__conn.cursor()
+        conn = db.connect(host=self.__host, user=self.__user, passwd=self.__passwd, db= self.__db, port=self.__port, use_unicode=True, charset='utf8')
+        curs = conn.cursor()
         plotData={}
         for key in dayData:
             sql = "select nvl(tempData.temp, 0) as temp, nvl(count(mask), 0) as mask from (select count(temp) as temp from detectUserTB as d join memberTB as m on d.memberEmail = m.email where d.shootingDate like %s and m.email=%s and mask = 0) as tempData, detectUserTB as d1 join memberTB m1 on d1.memberEmail = m1.email where d1.shootingDate like %s and m1.email=%s and mask = 1;"
@@ -143,13 +152,13 @@ class MysqlConnector(object):
             tupleData = curs.fetchall()
             plotData[key] = {"tempCnt":tupleData[0][0], "maskCnt":tupleData[0][1], "date": dayData[key].replace("%", '')}
         curs.close()
-        
+        conn.close()
         return plotData
     
     def warningDataUpdate(self, jsonData):
         try:
-            
-            curs = self.__conn.cursor()
+            conn = db.connect(host=self.__host, user=self.__user, passwd=self.__passwd, db= self.__db, port=self.__port, use_unicode=True, charset='utf8')
+            curs = conn.cursor()
             sql = "update detectUserTB set name = %s, age= %s, gender = %s, memberEmail = %s where seq = %s;"
             val = (jsonData["name"], jsonData["age"], jsonData["gender"], jsonData["Email"], jsonData["seq"]);
             curs.execute(sql, val)
@@ -161,26 +170,28 @@ class MysqlConnector(object):
             self.__conn.commit()
             
             curs.close()
-            
+            conn.close()
         except Exception as e:
             print("err2",e)
         
     
     def getMaskPlotData(self):
         try:
-            curs = self.__conn.cursor()
+            conn = db.connect(host=self.__host, user=self.__user, passwd=self.__passwd, db= self.__db, port=self.__port, use_unicode=True, charset='utf8')
+            curs = conn.cursor()
             sql = "SELECT mask, COUNT(mask) FROM detectUserTB GROUP BY mask;"
             curs.execute(sql)
             tupleData = curs.fetchall()
             curs.close()
-            
+            conn.close()
             return tupleData
         except Exception as e:
             print("err2",e)
             
     def getToDayCountData(self, now):
         try:
-            curs = self.__conn.cursor()
+            conn = db.connect(host=self.__host, user=self.__user, passwd=self.__passwd, db= self.__db, port=self.__port, use_unicode=True, charset='utf8')
+            curs = conn.cursor()
             sql = "select count(mask) from detectUserTB where mask =1 and shootingDate like %s;"
             curs.execute(sql, now)
             tupleData = curs.fetchall()
@@ -191,12 +202,14 @@ class MysqlConnector(object):
             curs.close()
             tupleData = curs.fetchall()
             dictData["tester"] = tupleData[0][0]
+            conn.close()
             return dictData
         except Exception as e:
             print("err3",e)
     
     def getLogData_all(self, jsonData):
-        curs = self.__conn.cursor()
+        conn = db.connect(host=self.__host, user=self.__user, passwd=self.__passwd, db= self.__db, port=self.__port, use_unicode=True, charset='utf8')
+        curs = conn.cursor()
         if "mask" in jsonData:
             sql = "select dut.seq from detectUserTB as dut join memberTB as m on dut.name = m.name where m.email = %s and dut.shootingDate like %s and dut.warning = '1' and dut.mask = %s;"
             val = (jsonData['email'], jsonData['day'], jsonData["mask"])
@@ -236,10 +249,12 @@ class MysqlConnector(object):
         dictData["img3"] = tupleData[0][9].replace("D:/project2021/imgFileServer/", "mntImg/")
         dictData["img4"] = tupleData[0][10].replace("D:/project2021/imgFileServer/", "mntImg/")
         curs.close()
+        conn.close()
         return dictData
     
     def getLogData_verify(self, jsonData):
-        curs = self.__conn.cursor()
+        conn = db.connect(host=self.__host, user=self.__user, passwd=self.__passwd, db= self.__db, port=self.__port, use_unicode=True, charset='utf8')
+        curs = conn.cursor()
         if "mask" in jsonData:
             sql = "select seq from detectUserTB where memberEmail = %s and shootingDate like %s and mask = %s;"
             val = (jsonData['email'], jsonData['day'], jsonData["mask"])
@@ -279,11 +294,13 @@ class MysqlConnector(object):
         dictData["img3"] = tupleData[0][9].replace("D:/project2021/imgFileServer/", "mntImg/")
         dictData["img4"] = tupleData[0][10].replace("D:/project2021/imgFileServer/", "mntImg/")
         curs.close()
+        conn.close()
         return dictData
     
     
     def getSelectLogData(self, seq):
-        curs = self.__conn.cursor()
+        conn = db.connect(host=self.__host, user=self.__user, passwd=self.__passwd, db= self.__db, port=self.__port, use_unicode=True, charset='utf8')
+        curs = conn.cursor()
         dictData = {}
         sql = "select logTB.name, logTB.temp, logTB.mask, logTB.age, logTB.gender, logTB.shootingDate, nvl(logTB.log, 'No-Log') as log, imgTB.original_IMGPath, imgTB.detail_IR_IMGPath, imgTB.original_IR_IMGPath, imgTB.detail_IMGPath FROM (select dut.seq, dut.name, dut.temp, dut.mask, dut.age, dut.gender, dut.shootingDate, dult.log from detectUserTB as dut left outer join detectUserLogTB as dult on dut.seq = dult.seq where dut.seq = %s) as logTB join imgpathTB as imgTB on imgTB.dutseq = logTB.seq;"
         curs.execute(sql, seq)
@@ -312,4 +329,17 @@ class MysqlConnector(object):
         
         
         curs.close()
+        conn.close()
         return dictData
+    
+    def getLiveData(self, seq):
+        conn = db.connect(host=self.__host, user=self.__user, passwd=self.__passwd, db= self.__db, port=self.__port, use_unicode=True, charset='utf8')
+        curs = conn.cursor()
+        dictData = {}
+        sql = "select seq, temp, mask, name, shootingDate, checked, warning from detectUserTB where warning = 1 and memberEmail is null and seq > %s;"
+        curs.execute(sql, seq)
+        tupleData = curs.fetchall()
+    
+        curs.close()
+        conn.close()
+        return tupleData
