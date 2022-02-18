@@ -244,10 +244,10 @@ class MysqlConnector(object):
         
         dictData["date"] = tupleData[0][5]
         dictData["log"] = tupleData[0][6]
-        dictData["img1"] = tupleData[0][7].replace("D:/project2021/imgFileServer/", "mntImg/")
-        dictData["img2"] = tupleData[0][8].replace("D:/project2021/imgFileServer/", "mntImg/")
-        dictData["img3"] = tupleData[0][9].replace("D:/project2021/imgFileServer/", "mntImg/")
-        dictData["img4"] = tupleData[0][10].replace("D:/project2021/imgFileServer/", "mntImg/")
+        dictData["img1"] = tupleData[0][7].replace("D:/project2021/imgFileServer/", "mntimg/")
+        dictData["img2"] = tupleData[0][8].replace("D:/project2021/imgFileServer/", "mntimg/")
+        dictData["img3"] = tupleData[0][9].replace("D:/project2021/imgFileServer/", "mntimg/")
+        dictData["img4"] = tupleData[0][10].replace("D:/project2021/imgFileServer/", "mntimg/")
         curs.close()
         conn.close()
         return dictData
@@ -289,10 +289,10 @@ class MysqlConnector(object):
         
         dictData["date"] = tupleData[0][5]
         dictData["log"] = tupleData[0][6]
-        dictData["img1"] = tupleData[0][7].replace("D:/project2021/imgFileServer/", "mntImg/")
-        dictData["img2"] = tupleData[0][8].replace("D:/project2021/imgFileServer/", "mntImg/")
-        dictData["img3"] = tupleData[0][9].replace("D:/project2021/imgFileServer/", "mntImg/")
-        dictData["img4"] = tupleData[0][10].replace("D:/project2021/imgFileServer/", "mntImg/")
+        dictData["img1"] = tupleData[0][7].replace("D:/project2021/imgFileServer/", "mntimg/")
+        dictData["img2"] = tupleData[0][8].replace("D:/project2021/imgFileServer/", "mntimg/")
+        dictData["img3"] = tupleData[0][9].replace("D:/project2021/imgFileServer/", "mntimg/")
+        dictData["img4"] = tupleData[0][10].replace("D:/project2021/imgFileServer/", "mntimg/")
         curs.close()
         conn.close()
         return dictData
@@ -302,7 +302,7 @@ class MysqlConnector(object):
         conn = db.connect(host=self.__host, user=self.__user, passwd=self.__passwd, db= self.__db, port=self.__port, use_unicode=True, charset='utf8')
         curs = conn.cursor()
         dictData = {}
-        sql = "select logTB.name, logTB.temp, logTB.mask, logTB.age, logTB.gender, logTB.shootingDate, nvl(logTB.log, 'No-Log') as log, imgTB.original_IMGPath, imgTB.detail_IR_IMGPath, imgTB.original_IR_IMGPath, imgTB.detail_IMGPath FROM (select dut.seq, dut.name, dut.temp, dut.mask, dut.age, dut.gender, dut.shootingDate, dult.log from detectUserTB as dut left outer join detectUserLogTB as dult on dut.seq = dult.seq where dut.seq = %s) as logTB join imgpathTB as imgTB on imgTB.dutseq = logTB.seq;"
+        sql = "select logTB.name, logTB.temp, logTB.mask, logTB.age, logTB.gender, logTB.shootingDate, nvl(logTB.log, 'No-Log') as log, imgTB.original_IMGPath, imgTB.detail_IR_IMGPath, imgTB.original_IR_IMGPath, imgTB.detail_IMGPath FROM (select dut.seq, dut.name, dut.temp, dut.mask, dut.age, dut.gender, dut.shootingDate, dult.log from detectUserTB as dut left outer join detectUserLogTB as dult on dut.seq = dult.dutseq where dut.seq = %s) as logTB join imgpathTB as imgTB on imgTB.dutseq = logTB.seq;"
         curs.execute(sql, seq)
         tupleData = curs.fetchall()
         print(tupleData)
@@ -322,10 +322,10 @@ class MysqlConnector(object):
         
         dictData["date"] = tupleData[0][5]
         dictData["log"] = tupleData[0][6]
-        dictData["img1"] = tupleData[0][7].replace("D:/project2021/imgFileServer/", "mntImg/")
-        dictData["img2"] = tupleData[0][8].replace("D:/project2021/imgFileServer/", "mntImg/")
-        dictData["img3"] = tupleData[0][9].replace("D:/project2021/imgFileServer/", "mntImg/")
-        dictData["img4"] = tupleData[0][10].replace("D:/project2021/imgFileServer/", "mntImg/")
+        dictData["img1"] = tupleData[0][7].replace("D:/project2021/imgFileServer/", "mntimg/")
+        dictData["img2"] = tupleData[0][8].replace("D:/project2021/imgFileServer/", "mntimg/")
+        dictData["img3"] = tupleData[0][9].replace("D:/project2021/imgFileServer/", "mntimg/")
+        dictData["img4"] = tupleData[0][10].replace("D:/project2021/imgFileServer/", "mntimg/") 
         
         
         curs.close()

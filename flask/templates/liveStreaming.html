@@ -168,13 +168,13 @@
                 </div>
                 <div class="imgStreaming">
                     <div class="mainCam">
-                        <!--<img class="mainCamImg" src="{{url_for('liveCam02')}}">-->
-                        <img class="mainCamImg" src="..">
+                        <img class="mainCamImg" src="{{url_for('liveCam02')}}">
+                        
                     </div>
                     <div class="roadInfo">
                         <div class="roadCam">
                             <img src="..">
-                            <!--<img src="{{url_for('liveCam01')}}">-->
+                            <img src="{{url_for('liveCam01')}}">
                         </div>
                         <div class="carInfo">
                             <div class="carTitle">
@@ -311,8 +311,5 @@
         </div>
     </body>
     <script src="https://code.highcharts.com/highcharts.js"></script>
-    
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js""></script>
-    <!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>-->
     <script type="text/javascript" src="{{url_for('static', filename='js/liveStreaming.js')}}"></script>
 </html>

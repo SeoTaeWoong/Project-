@@ -352,8 +352,7 @@ class SocketServer(object):
                     try:
                         cv2.imshow("roadCam",roadEdgeData)
                         cv2.imshow("humanCam",faceEdgeData)
-                        #cv2.imshow("roadCam",roadCam)
-                        #cv2.imshow("humanCam",humanCam)
+                
                         cv2.waitKey(1)
                     except :
                         pass
@@ -362,17 +361,17 @@ class SocketServer(object):
                             
                     if self.webSocket != None:
                         
-                        # result, roadCam = cv2.imencode('.jpg', roadEdgeDatas, self.encode_param)
-                        # raodCamData = np.array(roadCam)
-                        # roadCamByteData = raodCamData.tobytes()
-                        # roadCamBase64Data = self.byteTransformBase64(roadCamByteData)
+                        result, roadCam = cv2.imencode('.jpg', roadEdgeData, self.encode_param)
+                        raodCamData = np.array(roadCam)
+                        roadCamByteData = raodCamData.tobytes()
+                        roadCamBase64Data = self.byteTransformBase64(roadCamByteData)
                         
                         result, humanCam = cv2.imencode('.jpg', faceEdgeData, self.encode_param)
                         humanCamData = np.array(humanCam)
                         humanCamByteData = humanCamData.tobytes()
                         humanCamBase64Data = self.byteTransformBase64(humanCamByteData)
                         
-                        data = {"roadCam": roadData ,"humanCam": humanCamBase64Data,"warning": self.__warning}
+                        data = {"roadCam": roadCamBase64Data ,"humanCam": humanCamBase64Data,"warning": self.__warning}
                         message = self.__messageForm
                         message["destination"] = "web"
                         message["type"] = "request/RealTimeStatus"

@@ -1,5 +1,4 @@
 from flask import Flask, render_template, Response, request
-from flask_socketio import SocketIO
 from multiprocessing import Process, Queue
 import threading as Threading
 import socketClient as SocketCli
@@ -132,10 +131,10 @@ def getInfoData():
             "gender":listData[3],
             "temp":listData[4],
             "mask":listData[5],
-            "origin_img":listData[6].replace("D:/project2021/imgFileServer","static/mntimg"),
-            "origin_ir_img":listData[7].replace("D:/project2021/imgFileServer","static/mntimg"),
-            "detail_img":listData[8].replace("D:/project2021/imgFileServer","static/mntimg"),
-            "detail_ir_img":listData[9].replace("D:/project2021/imgFileServer","static/mntimg"),
+            "origin_img":listData[6].replace("D:/project2021/imgFileServer","/static/mntimg"),
+            "origin_ir_img":listData[7].replace("D:/project2021/imgFileServer","/static/mntimg"),
+            "detail_img":listData[8].replace("D:/project2021/imgFileServer","/static/mntimg"),
+            "detail_ir_img":listData[9].replace("D:/project2021/imgFileServer","/static/mntimg"),
             }
         
         #{{url_for('static', filename='mntimg/shutdown.png')}}
@@ -323,12 +322,15 @@ def getLiveData():
     for index in range(len(tupleData)):
         dictData[index] = {"seq": tupleData[index][0]}
         dictData[index]["temp"] = tupleData[index][1]
-        dictData[index]["mask"] = tupleData[index][2]
+        if tupleData[index][2] == 0:
+            dictData[index]["mask"] = "On"
+        else:
+            dictData[index]["mask"] = "No"
         dictData[index]["name"] = tupleData[index][3]
         dictData[index]["date"] = tupleData[index][4]
         dictData[index]["checked"] = tupleData[index][5]
         dictData[index]["warning"] = tupleData[index][6]
-        
+    
         
     
     return json.dumps(dictData)
@@ -345,5 +347,5 @@ if __name__ == '__main__':
     socket_process.start()
 
 
-    socketio.run(app, host="0.0.0.0", port=8484)
+    app.run(host="0.0.0.0", port=8484)
     
