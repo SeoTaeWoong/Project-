@@ -111,23 +111,27 @@ window.onload = function(){
                                         let chartImgNum3 = document.querySelector(".chartImgNum3")
                                         let chartImgNum4 = document.querySelector(".chartImgNum4")
                                         
+                                        let origin_img = data["origin_img"]
+                                        let detail_ir_img = data["detail_ir_img"]
+                                        let detail_img = data["detail_img"]
+                                        let origin_ir_img = data["origin_ir_img"]
                                        
                                         chartImgNum1.addEventListener("click", function(){
-                                            chartImg.src = data["origin_img"]
+                                            chartImg.src = origin_img
                                         });
                                        
                                         chartImgNum2.addEventListener("click", function(){
-                                            chartImg.src = data["detail_ir_img"]
+                                            chartImg.src = detail_ir_img
                                             
                                         });
                                        
                                         chartImgNum3.addEventListener("click", function(){
-                                            chartImg.src = data["detail_img"]
+                                            chartImg.src = detail_img
                                             
                                         });
                                        
                                         chartImgNum4.addEventListener("click", function(){
-                                            chartImg.src = data["origin_ir_img"]
+                                            chartImg.src = origin_ir_img
                                         });
                                         
                                         
@@ -565,7 +569,7 @@ window.onload = function(){
                                     if(__xhr.status == 200){
                                         _data = JSON.parse(this.responseText)
                                         
-                                        logFile.innerHTML = "- LogFile_"+data["seq"][0]+" -"
+                                        logFile.innerHTML = "- "+item.textContent+" -"
                                         logDate.innerHTML = _data["date"]
                                         logName.innerHTML = _data["name"]
                                         logGender.innerHTML = _data["gender"]
@@ -1006,6 +1010,7 @@ window.onload = function(){
                                 xhr = new XMLHttpRequest();
                                 xhr.open("POST", "/getInfoData", false);
                                 jsonData = {"seq":item.dataset.seq}
+                                console.log()
                                 jsonData = JSON.stringify(jsonData)
                                 xhr.onreadystatechange = function(){
                                     if(xhr.readyState ==4){
@@ -1048,25 +1053,28 @@ window.onload = function(){
                                             let chartImgNum3 = document.querySelector(".chartImgNum3")
                                             let chartImgNum4 = document.querySelector(".chartImgNum4")
                                             
-                                            console.log(data)
+                                            let origin_img = data["origin_img"]
+                                            let detail_ir_img = data["detail_ir_img"]
+                                            let detail_img = data["detail_img"]
+                                            let origin_ir_img = data["origin_ir_img"]
                                            
                                             chartImgNum1.addEventListener("click", function(){
                                                 
-                                                chartImg.src = data["origin_img"]
+                                                chartImg.src = origin_img
                                             });
                                            
                                             chartImgNum2.addEventListener("click", function(){
-                                                chartImg.src = data["detail_ir_img"]
+                                                chartImg.src = detail_ir_img
                                                 
                                             });
                                            
                                             chartImgNum3.addEventListener("click", function(){
-                                                chartImg.src = data["detail_img"]
+                                                chartImg.src = detail_img
                                                 
                                             });
                                            
                                             chartImgNum4.addEventListener("click", function(){
-                                                chartImg.src = data["origin_ir_img"]
+                                                chartImg.src = origin_ir_img
                                             });
                                             
                                             

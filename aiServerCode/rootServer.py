@@ -380,6 +380,7 @@ class SocketServer(object):
                         
                         self.__warning = 0;
                 except Exception as e:
+                    print(e)
                     pass
                 #여기서 웹으로 데이터 전송 코드 작성하기
                 #

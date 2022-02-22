@@ -62,7 +62,6 @@ main > .mainMenuImgWrap > .members{
 main >.mainMenuImgWrap > .members > figure{
     width:20%;
     height:auto;
-    border: 1px solid black;
 }
 
 main > .mainMenuImgWrap > .members > figure > img{
@@ -89,7 +88,7 @@ main > .demoVideo{
     margin:0 auto;
     padding:30px;
     
-    background: rgba(0,149,255,0.7);
+    #background: rgba(0,149,255,0.7);
     background-repeat : no-repeat;
     background-size : cover;
     

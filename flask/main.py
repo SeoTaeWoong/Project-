@@ -7,8 +7,6 @@ import datetime
 import json
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = "0912"
-socketio = SocketIO(app)
 
 
 maskUserCnt = 0;

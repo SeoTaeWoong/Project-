@@ -75,7 +75,7 @@ class MysqlConnector(object):
             curs = conn.cursor()
             sql = "update detectUserTB set checked = 1 where seq = %s";
             curs.execute(sql, (seq))
-            self.__conn.commit()
+            conn.commit()
             
             sql = "select d.seq, d.name,d.age, d.gender, d.temp, d.mask, p.original_imgpath, p.original_ir_imgpath, p.detail_imgpath, p.detail_ir_imgpath from detectUserTB as d join imgPathTB as p on d.seq = p.dutseq and d.seq = %s;"
             
@@ -162,12 +162,12 @@ class MysqlConnector(object):
             sql = "update detectUserTB set name = %s, age= %s, gender = %s, memberEmail = %s where seq = %s;"
             val = (jsonData["name"], jsonData["age"], jsonData["gender"], jsonData["Email"], jsonData["seq"]);
             curs.execute(sql, val)
-            self.__conn.commit()
+            conn.commit()
             
             sql = "insert into detectUserLogTB (dutseq, log) values (%s, %s);"
             val = (jsonData["seq"], jsonData["log"]);
             curs.execute(sql, val)
-            self.__conn.commit()
+            conn.commit()
             
             curs.close()
             conn.close()
